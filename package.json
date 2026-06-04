@@ -1,0 +1,328 @@
+{
+  "name": "aizquad-ide",
+  "displayName": "AiZQuad IDE - Sovereign PEU",
+  "description": "The Bad MF Box — 4-room sovereign development interface for FC_FLOW MESH",
+  "version": "0.1.0",
+  "publisher": "aizquad-bmb",
+  "author": {
+    "name": "Juan Jaime Rivera Zamorano",
+    "email": "aizquadbmb@proton.me"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aizquad.openIDE",
+        "title": "AiZQuad: Open IDE",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.forgeRoom",
+        "title": "AiZQuad: Forge Room",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.lockRoom",
+        "title": "AiZQuad: Lock Room",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.verifyRoom",
+        "title": "AiZQuad: Verify Room Lock",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.splitRoom",
+        "title": "AiZQuad: Split Room",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.buildMesh",
+        "title": "AiZQuad: Build Mesh",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.labStatus",
+        "title": "AiZQuad: Lab Status",
+        "category": "AiZQuad"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aizquad-explorer",
+          "title": "AiZQuad Lab",
+          "icon": "media/logo.png"
+        }
+      ]
+    },
+    "views": {
+      "aizquad-explorer": [
+        {
+          "id": "aizquad.roomStatus",
+          "name": "Room Status"
+        },
+        {
+          "id": "aizquad.pipelineStatus",
+          "name": "Pipeline Status"
+        },
+        {
+          "id": "aizquad.engineStatus",
+          "name": "Engine Status"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AiZQuad IDE",
+      "properties": {
+        "aizquad.autoOpenIDE": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open AiZQuad IDE on workspace open"
+        },
+        "aizquad.terminalRoom": {
+          "type": "string",
+          "default": "bottom-right",
+          "enum": ["bottom-right", "bottom-left"],
+          "description": "Terminal room position"
+        },
+        "aizquad.theme": {
+          "type": "string",
+          "default": "bmb-dark",
+          "enum": ["bmb-dark", "bmb-light", "sovereign"],
+          "description": "AiZQuad IDE theme"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.x",
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8.x",
+    "typescript": "^5.3.0"
+  }
+}
+{
+  "name": "flowstation",
+  "displayName": "AiZQuad FlowStation Lab",
+  "description": "Sovereign command center — organized, privacy-first development",
+  "version": "1.0.0",
+  "publisher": "AiZQuad",
+  "icon": "src/media/flowstation.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aizquad/flowstation"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["flowstation", "aizquad", "sovereign", "workflow"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "flowstation",
+          "title": "FlowStation",
+          "icon": "src/media/flowstation.svg"
+        }
+      ]
+    },
+
+    "views": {
+      "flowstation": [
+        {
+          "id": "flowstation.session",
+          "name": "Session",
+          "type": "webview"
+        },
+        {
+          "id": "flowstation.rooms",
+          "name": "Rooms",
+          "type": "tree"
+        },
+        {
+          "id": "flowstation.mesh",
+          "name": "Mesh",
+          "type": "tree"
+        },
+        {
+          "id": "flowstation.audit",
+          "name": "Audit Trail",
+          "type": "tree"
+        }
+      ]
+    },
+
+    "commands": [
+      {
+        "command": "flowstation.unlock",
+        "title": "FlowStation: Unlock Session",
+        "icon": "$(unlock)"
+      },
+      {
+        "command": "flowstation.lock",
+        "title": "FlowStation: Lock Session",
+        "icon": "$(lock)"
+      },
+      {
+        "command": "flowstation.openDialog",
+        "title": "FlowStation: Open Fluid Dialog",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "flowstation.runPipeline",
+        "title": "FlowStation: Run Full Pipeline",
+        "icon": "$(play)"
+      },
+      {
+        "command": "flowstation.lockRoom",
+        "title": "FlowStation: Lock Room",
+        "icon": "$(lock)"
+      },
+      {
+        "command": "flowstation.splitRoom",
+        "title": "FlowStation: Split Room",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "flowstation.sortRoom",
+        "title": "FlowStation: Sort Room",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "flowstation.integrateRoom",
+        "title": "FlowStation: Integrate Room",
+        "icon": "$(merge)"
+      },
+      {
+        "command": "flowstation.verifyRoom",
+        "title": "FlowStation: Verify Room",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "flowstation.refreshRooms",
+        "title": "FlowStation: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "flowstation.viewAudit",
+        "title": "FlowStation: View Audit Log",
+        "icon": "$(history)"
+      }
+    ],
+
+    "menus": {
+      "view/title": [
+        {
+          "command": "flowstation.refreshRooms",
+          "when": "view == flowstation.rooms",
+          "group": "navigation"
+        },
+        {
+          "command": "flowstation.openDialog",
+          "when": "view == flowstation.rooms",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "flowstation.lockRoom",
+          "when": "viewItem == room",
+          "group": "flowstation@1"
+        },
+        {
+          "command": "flowstation.splitRoom",
+          "when": "viewItem == room",
+          "group": "flowstation@2"
+        },
+        {
+          "command": "flowstation.sortRoom",
+          "when": "viewItem == room",
+          "group": "flowstation@3"
+        },
+        {
+          "command": "flowstation.integrateRoom",
+          "when": "viewItem == room",
+          "group": "flowstation@4"
+        },
+        {
+          "command": "flowstation.verifyRoom",
+          "when": "viewItem == room",
+          "group": "flowstation@5"
+        },
+        {
+          "command": "flowstation.openDialog",
+          "when": "viewItem == room",
+          "group": "flowstation@6"
+        }
+      ]
+    },
+
+    "configuration": {
+      "title": "FlowStation",
+      "properties": {
+        "flowstation.workspaceRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Path to FlowStation workspace root"
+        },
+        "flowstation.sessionTimeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Session timeout in minutes"
+        },
+        "flowstation.autoScan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-scan rooms on file save"
+        },
+        "flowstation.openaiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key for AI agent (optional)"
+        }
+      }
+    }
+  },
+
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+
+  "dependencies": {
+    "openai": "^4.0.0"
+  },
+
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "@vscode/vsce": "^2.0.0"
+  }
+}

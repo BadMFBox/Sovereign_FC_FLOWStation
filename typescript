@@ -1,0 +1,151 @@
+// ═══════════════════════════════════════════════════════════════
+//  AIAgent.ts — Session-Gated AI Integration
+//  Part of AiZQuad FlowStation Lab
+// ═══════════════════════════════════════════════════════════════
+
+import { TerminalBridge, AIAccessLevel } from "./TerminalBridge";
+import OpenAI from "openai"; // or Anthropic, or local model
+
+export interface AIRequest {
+  room:    string;
+  query:   string;
+  context: "surface" | "full"; // matches access level
+}
+
+export interface AIResponse {
+  answer:     string;
+  tokensUsed: number;
+  timestamp:  string;
+  accessUsed: AIAccessLevel;
+  audited:    boolean;
+}
+
+export class AIAgent {
+  
+  constructor(
+    private bridge: TerminalBridge,
+    private apiKey: string,
+    private model:  string = "gpt-4"
+  ) {}
+
+  /**
+   * Ask AI a question about a room.
+   * Respects FlowStation access control.
+   */
+  async ask(request: AIRequest): Promise<AIResponse> {
+    // 1. Check session
+    if (!this.bridge.isUnlocked()) {
+      throw new Error("Session locked. Unlock FlowStation first.");
+    }
+
+    // 2. Check AI access for this room
+    const accessLevel = this.bridge.getAIAccessLevel(request.room);
+    if (accessLevel === "none") {
+      throw new Error(`No AI access granted for ${request.room}`);
+    }
+
+    // 3. Load appropriate context
+    const context = await this.loadContext(request.room, accessLevel);
+
+    // 4. Build prompt
+    const prompt = this.buildPrompt(request.query, context, accessLevel);
+
+    // 5. Call AI
+    const openai   = new OpenAI({ apiKey: this.apiKey });
+    const response = await openai.chat.completions.create({
+      model:    this.model,
+      messages: [
+        {
+          role:    "system",
+          content: this.systemPrompt(accessLevel),
+        },
+        {
+          role:    "user", 
+          content: prompt,
+        },
+      ],
+    });
+
+    const answer = response.choices[0]?.message?.content ?? "";
+    const tokens = response.usage?.total_tokens ?? 0;
+
+    // 6. Audit the request
+    this.bridge.audit(
+      "AI_QUERY",
+      request.room,
+      `query="${request.query.slice(0, 50)}..." tokens=${tokens} level=${accessLevel}`
+    );
+
+    return {
+      answer,
+      tokensUsed: tokens,
+      timestamp:  new Date().toISOString(),
+      accessUsed: accessLevel,
+      audited:    true,
+    };
+  }
+
+  /**
+   * Load room context based on access level.
+   */
+  private async loadContext(
+    room:  string,
+    level: AIAccessLevel
+  ): Promise<string> {
+    
+    if (level === "surface") {
+      // AI only sees the public API surface
+      const surfacePath = `integration/output/mesh/${room}/_surface.py`;
+      return this.bridge.readFile(surfacePath);
+    }
+    
+    if (level === "read") {
+      // AI sees full room internals
+      const roomPath = `integration/output/mesh/${room}`;
+      return this.bridge.readDirectory(roomPath);
+    }
+
+    return ""; // none — shouldn't reach here due to guard
+  }
+
+  /**
+   * Build the actual prompt sent to AI.
+   */
+  private buildPrompt(
+    query:   string,
+    context: string,
+    level:   AIAccessLevel
+  ): string {
+    return `
+You are analyzing code in FlowStation with ${level} access.
+
+CONTEXT:
+${context}
+
+USER QUESTION:
+${query}
+
+Provide a clear, actionable answer. If the question requires information
+beyond your current access level, say so explicitly.
+    `.trim();
+  }
+
+  /**
+   * System prompt that establishes AI behavior.
+   */
+  private systemPrompt(level: AIAccessLevel): string {
+    return `
+You are an AI assistant integrated into AiZQuad FlowStation Lab.
+
+ACCESS LEVEL: ${level}
+
+RULES:
+- You have ${level} access to the current room.
+- If "surface", you only see public APIs. Do not speculate about internals.
+- If "read", you see full implementation. Be thorough.
+- Always respect the session-based access model.
+- If asked to do something outside your access, say so clearly.
+- All your responses are audited by FlowStation.
+    `.trim();
+  }
+}

@@ -1,0 +1,437 @@
+# ═══════════════════════════════════════════════════════════════
+#  AiZQuad Lab — FC_FLOW MESH
+#  C++ Build Configuration
+#
+#  Sovereign C++ components integrated with Python mesh.
+#  Multi-room architecture with proper namespacing.
+#
+#  Founder: Juan Jaime Rivera Zamorano
+# ═══════════════════════════════════════════════════════════════
+
+cmake_minimum_required(VERSION 3.15)
+
+project(AiZQuad_FCFlow_MESH
+    VERSION 1.0.0
+    DESCRIPTION "FC_FLOW MESH - Sovereign Development Pipeline"
+    LANGUAGES CXX C
+)
+
+# ───────────────────────────────────────────────────────────────
+#  BUILD CONFIGURATION
+# ───────────────────────────────────────────────────────────────
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Default to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# Output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# ───────────────────────────────────────────────────────────────
+#  COMPILER FLAGS
+# ───────────────────────────────────────────────────────────────
+
+# Common flags for all configurations
+set(COMMON_FLAGS
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+    -Wnon-virtual-dtor
+    -Wold-style-cast
+    -Wcast-align
+    -Wunused
+    -Woverloaded-virtual
+    -Wformat=2
+)
+
+# Debug flags
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -DDEBUG")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -DDEBUG")
+
+# Release flags
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -DNDEBUG")
+
+# Apply common flags
+add_compile_options(${COMMON_FLAGS})
+
+# Enable position-independent code for shared libraries
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# ───────────────────────────────────────────────────────────────
+#  OPTIONS
+# ───────────────────────────────────────────────────────────────
+
+option(BUILD_SHARED_LIBS    "Build shared libraries"           ON)
+option(BUILD_TESTS          "Build test suite"                 ON)
+option(BUILD_EXAMPLES       "Build examples"                   OFF)
+option(ENABLE_PYTHON_BINDINGS "Build Python bindings"          ON)
+option(ENABLE_COVERAGE      "Enable code coverage"             OFF)
+option(ENABLE_SANITIZERS    "Enable sanitizers (ASan, UBSan)"  OFF)
+option(ENABLE_LTO           "Enable Link-Time Optimization"    OFF)
+
+# ───────────────────────────────────────────────────────────────
+#  SANITIZERS
+# ───────────────────────────────────────────────────────────────
+
+if(ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Enabling sanitizers (ASan + UBSan)")
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  LINK-TIME OPTIMIZATION
+# ───────────────────────────────────────────────────────────────
+
+if(ENABLE_LTO AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_ERROR)
+    if(IPO_SUPPORTED)
+        message(STATUS "Enabling Link-Time Optimization")
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(WARNING "LTO not supported: ${IPO_ERROR}")
+    endif()
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  DEPENDENCIES
+# ───────────────────────────────────────────────────────────────
+
+# Python (for bindings)
+if(ENABLE_PYTHON_BINDINGS)
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+    message(STATUS "Python3: ${Python3_VERSION}")
+    message(STATUS "Python3 Include: ${Python3_INCLUDE_DIRS}")
+    
+    # pybind11 for Python bindings
+    find_package(pybind11 CONFIG)
+    if(NOT pybind11_FOUND)
+        message(STATUS "pybind11 not found, fetching from GitHub...")
+        include(FetchContent)
+        FetchContent_Declare(
+            pybind11
+            GIT_REPOSITORY https://github.com/pybind/pybind11.git
+            GIT_TAG        v2.11.1
+        )
+        FetchContent_MakeAvailable(pybind11)
+    endif()
+endif()
+
+# Google Test (for testing)
+if(BUILD_TESTS)
+    find_package(GTest CONFIG)
+    if(NOT GTest_FOUND)
+        message(STATUS "GTest not found, fetching from GitHub...")
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG        v1.14.0
+        )
+        FetchContent_MakeAvailable(googletest)
+    endif()
+    enable_testing()
+endif()
+
+# Threading
+find_package(Threads REQUIRED)
+
+# ───────────────────────────────────────────────────────────────
+#  INCLUDE DIRECTORIES
+# ───────────────────────────────────────────────────────────────
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/integration/output/mesh
+)
+
+# ───────────────────────────────────────────────────────────────
+#  MESH CORE LIBRARY
+# ───────────────────────────────────────────────────────────────
+
+# Common mesh utilities used by all rooms
+add_library(mesh_core INTERFACE)
+target_include_directories(mesh_core INTERFACE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+# ───────────────────────────────────────────────────────────────
+#  DISCOVER AND BUILD ROOMS
+# ───────────────────────────────────────────────────────────────
+
+set(MESH_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/integration/output/mesh")
+
+# Function to sanitize room names
+function(sanitize_room_name input output)
+    string(REPLACE "-" "_" temp ${input})
+    set(${output} ${temp} PARENT_SCOPE)
+endfunction()
+
+# Scan for integrated rooms
+if(EXISTS ${MESH_OUTPUT_DIR})
+    file(GLOB ROOM_DIRS ${MESH_OUTPUT_DIR}/*)
+    
+    foreach(ROOM_DIR ${ROOM_DIRS})
+        if(IS_DIRECTORY ${ROOM_DIR})
+            get_filename_component(ROOM_NAME ${ROOM_DIR} NAME)
+            
+            # Check if room has C++ components
+            file(GLOB_RECURSE CPP_SOURCES 
+                ${ROOM_DIR}/*.cpp
+                ${ROOM_DIR}/*.cc
+                ${ROOM_DIR}/*.cxx
+            )
+            file(GLOB_RECURSE C_SOURCES ${ROOM_DIR}/*.c)
+            file(GLOB_RECURSE HEADERS 
+                ${ROOM_DIR}/*.h
+                ${ROOM_DIR}/*.hpp
+            )
+            
+            set(ALL_SOURCES ${CPP_SOURCES} ${C_SOURCES})
+            
+            if(ALL_SOURCES)
+                message(STATUS "Found C/C++ room: ${ROOM_NAME}")
+                
+                sanitize_room_name(${ROOM_NAME} ROOM_TARGET)
+                
+                # Create room library
+                add_library(${ROOM_TARGET} ${ALL_SOURCES} ${HEADERS})
+                
+                target_include_directories(${ROOM_TARGET}
+                    PUBLIC
+                        ${ROOM_DIR}
+                    PRIVATE
+                        ${ROOM_DIR}/core
+                        ${ROOM_DIR}/validation
+                        ${ROOM_DIR}/config
+                )
+                
+                target_link_libraries(${ROOM_TARGET}
+                    PUBLIC mesh_core
+                    PRIVATE Threads::Threads
+                )
+                
+                # Set proper namespace
+                set_target_properties(${ROOM_TARGET} PROPERTIES
+                    CXX_VISIBILITY_PRESET hidden
+                    VISIBILITY_INLINES_HIDDEN YES
+                    VERSION ${PROJECT_VERSION}
+                    SOVERSION 1
+                )
+                
+                # Python bindings for this room
+                if(ENABLE_PYTHON_BINDINGS)
+                    set(BINDING_FILE ${ROOM_DIR}/bindings.cpp)
+                    if(EXISTS ${BINDING_FILE})
+                        pybind11_add_module(${ROOM_TARGET}_py ${BINDING_FILE})
+                        target_link_libraries(${ROOM_TARGET}_py PRIVATE ${ROOM_TARGET})
+                        
+                        # Install Python module
+                        install(TARGETS ${ROOM_TARGET}_py
+                            LIBRARY DESTINATION ${Python3_SITEARCH}/aizquad/mesh
+                        )
+                    endif()
+                endif()
+                
+                # Install library
+                install(TARGETS ${ROOM_TARGET}
+                    LIBRARY DESTINATION lib
+                    ARCHIVE DESTINATION lib
+                    RUNTIME DESTINATION bin
+                )
+                
+                # Install headers
+                install(DIRECTORY ${ROOM_DIR}/
+                    DESTINATION include/aizquad/${ROOM_NAME}
+                    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+                )
+            endif()
+        endif()
+    endforeach()
+else()
+    message(WARNING "Mesh output directory not found: ${MESH_OUTPUT_DIR}")
+    message(STATUS "Run 'make integrate' first to generate the mesh")
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  MESH EXECUTABLE (if main.cpp exists)
+# ───────────────────────────────────────────────────────────────
+
+set(MAIN_FILE "${CMAKE_SOURCE_DIR}/src/main.cpp")
+if(EXISTS ${MAIN_FILE})
+    add_executable(mesh_app ${MAIN_FILE})
+    
+    # Link all room libraries
+    foreach(ROOM_DIR ${ROOM_DIRS})
+        if(IS_DIRECTORY ${ROOM_DIR})
+            get_filename_component(ROOM_NAME ${ROOM_DIR} NAME)
+            sanitize_room_name(${ROOM_NAME} ROOM_TARGET)
+            
+            if(TARGET ${ROOM_TARGET})
+                target_link_libraries(mesh_app PRIVATE ${ROOM_TARGET})
+            endif()
+        endif()
+    endforeach()
+    
+    target_link_libraries(mesh_app PRIVATE mesh_core Threads::Threads)
+    
+    install(TARGETS mesh_app RUNTIME DESTINATION bin)
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  TESTS
+# ───────────────────────────────────────────────────────────────
+
+if(BUILD_TESTS)
+    set(TEST_DIR "${CMAKE_SOURCE_DIR}/tests/cpp")
+    
+    if(EXISTS ${TEST_DIR})
+        file(GLOB_RECURSE TEST_SOURCES ${TEST_DIR}/*.cpp)
+        
+        if(TEST_SOURCES)
+            add_executable(mesh_tests ${TEST_SOURCES})
+            
+            target_link_libraries(mesh_tests
+                PRIVATE
+                    GTest::gtest
+                    GTest::gtest_main
+                    mesh_core
+                    Threads::Threads
+            )
+            
+            # Link room libraries for testing
+            foreach(ROOM_DIR ${ROOM_DIRS})
+                if(IS_DIRECTORY ${ROOM_DIR})
+                    get_filename_component(ROOM_NAME ${ROOM_DIR} NAME)
+                    sanitize_room_name(${ROOM_NAME} ROOM_TARGET)
+                    
+                    if(TARGET ${ROOM_TARGET})
+                        target_link_libraries(mesh_tests PRIVATE ${ROOM_TARGET})
+                    endif()
+                endif()
+            endforeach()
+            
+            include(GoogleTest)
+            gtest_discover_tests(mesh_tests)
+        endif()
+    endif()
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  EXAMPLES
+# ───────────────────────────────────────────────────────────────
+
+if(BUILD_EXAMPLES)
+    set(EXAMPLES_DIR "${CMAKE_SOURCE_DIR}/examples")
+    
+    if(EXISTS ${EXAMPLES_DIR})
+        file(GLOB EXAMPLE_FILES ${EXAMPLES_DIR}/*.cpp)
+        
+        foreach(EXAMPLE_FILE ${EXAMPLE_FILES})
+            get_filename_component(EXAMPLE_NAME ${EXAMPLE_FILE} NAME_WE)
+            
+            add_executable(example_${EXAMPLE_NAME} ${EXAMPLE_FILE})
+            
+            target_link_libraries(example_${EXAMPLE_NAME}
+                PRIVATE mesh_core Threads::Threads
+            )
+            
+            # Link relevant room libraries
+            foreach(ROOM_DIR ${ROOM_DIRS})
+                if(IS_DIRECTORY ${ROOM_DIR})
+                    get_filename_component(ROOM_NAME ${ROOM_DIR} NAME)
+                    sanitize_room_name(${ROOM_NAME} ROOM_TARGET)
+                    
+                    if(TARGET ${ROOM_TARGET})
+                        target_link_libraries(example_${EXAMPLE_NAME} PRIVATE ${ROOM_TARGET})
+                    endif()
+                endif()
+            endforeach()
+        endforeach()
+    endif()
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  COVERAGE
+# ───────────────────────────────────────────────────────────────
+
+if(ENABLE_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(STATUS "Enabling code coverage")
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
+        add_link_options(--coverage)
+    endif()
+endif()
+
+# ───────────────────────────────────────────────────────────────
+#  INSTALLATION
+# ───────────────────────────────────────────────────────────────
+
+# Install mesh core headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+# Generate and install CMake package config
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    ${CMAKE_SOURCE_DIR}/cmake/AiZQuadConfig.cmake.in
+    ${CMAKE_BINARY_DIR}/AiZQuadConfig.cmake
+    INSTALL_DESTINATION lib/cmake/AiZQuad
+)
+
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/AiZQuadConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+    ${CMAKE_BINARY_DIR}/AiZQuadConfig.cmake
+    ${CMAKE_BINARY_DIR}/AiZQuadConfigVersion.cmake
+    DESTINATION lib/cmake/AiZQuad
+)
+
+# ───────────────────────────────────────────────────────────────
+#  BUILD SUMMARY
+# ───────────────────────────────────────────────────────────────
+
+message(STATUS "")
+message(STATUS "═══════════════════════════════════════════")
+message(STATUS "  AiZQuad FC_FLOW MESH — Build Configuration")
+message(STATUS "═══════════════════════════════════════════")
+message(STATUS "  Version:           ${PROJECT_VERSION}")
+message(STATUS "  Build Type:        ${CMAKE_BUILD_TYPE}")
+message(STATUS "  C++ Standard:      ${CMAKE_CXX_STANDARD}")
+message(STATUS "  Compiler:          ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "")
+message(STATUS "  Options:")
+message(STATUS "    Shared Libraries:   ${BUILD_SHARED_LIBS}")
+message(STATUS "    Tests:              ${BUILD_TESTS}")
+message(STATUS "    Examples:           ${BUILD_EXAMPLES}")
+message(STATUS "    Python Bindings:    ${ENABLE_PYTHON_BINDINGS}")
+message(STATUS "    Coverage:           ${ENABLE_COVERAGE}")
+message(STATUS "    Sanitizers:         ${ENABLE_SANITIZERS}")
+message(STATUS "    LTO:                ${ENABLE_LTO}")
+message(STATUS "")
+message(STATUS "  Output:")
+message(STATUS "    Binaries:  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message(STATUS "    Libraries: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+message(STATUS "═══════════════════════════════════════════")
+message(STATUS "")

@@ -1,0 +1,123 @@
+{
+  "name": "aizquad-ide",
+  "displayName": "AiZQuad IDE - Sovereign PEU",
+  "description": "The Bad MF Box — 4-room sovereign development interface for FC_FLOW MESH",
+  "version": "0.1.0",
+  "publisher": "aizquad-bmb",
+  "author": {
+    "name": "Juan Jaime Rivera Zamorano",
+    "email": "aizquadbmb@proton.me"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aizquad.openIDE",
+        "title": "AiZQuad: Open IDE",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.forgeRoom",
+        "title": "AiZQuad: Forge Room",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.lockRoom",
+        "title": "AiZQuad: Lock Room",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.verifyRoom",
+        "title": "AiZQuad: Verify Room Lock",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.splitRoom",
+        "title": "AiZQuad: Split Room",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.buildMesh",
+        "title": "AiZQuad: Build Mesh",
+        "category": "AiZQuad"
+      },
+      {
+        "command": "aizquad.labStatus",
+        "title": "AiZQuad: Lab Status",
+        "category": "AiZQuad"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aizquad-explorer",
+          "title": "AiZQuad Lab",
+          "icon": "media/logo.png"
+        }
+      ]
+    },
+    "views": {
+      "aizquad-explorer": [
+        {
+          "id": "aizquad.roomStatus",
+          "name": "Room Status"
+        },
+        {
+          "id": "aizquad.pipelineStatus",
+          "name": "Pipeline Status"
+        },
+        {
+          "id": "aizquad.engineStatus",
+          "name": "Engine Status"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AiZQuad IDE",
+      "properties": {
+        "aizquad.autoOpenIDE": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open AiZQuad IDE on workspace open"
+        },
+        "aizquad.terminalRoom": {
+          "type": "string",
+          "default": "bottom-right",
+          "enum": ["bottom-right", "bottom-left"],
+          "description": "Terminal room position"
+        },
+        "aizquad.theme": {
+          "type": "string",
+          "default": "bmb-dark",
+          "enum": ["bmb-dark", "bmb-light", "sovereign"],
+          "description": "AiZQuad IDE theme"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.x",
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8.x",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,81 @@
+# ═══════════════════════════════════════════════════════════════
+#  AiZQuad Lab — FC_FLOW MESH
+#  Python Dependencies
+#
+#  Pinned versions. No surprises.
+#  Sovereign dependency management.
+#
+#  Install: pip install -r requirements.txt
+#  Founder: Juan Jaime Rivera Zamorano
+# ═══════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────
+#  CORE — Runtime dependencies
+# ───────────────────────────────────────────────────────────────
+
+# Cryptographic hashing (logic lock signatures)
+cryptography==42.0.8
+
+# Rich terminal output
+rich==13.7.1
+
+# Terminal progress bars
+tqdm==4.66.4
+
+# Data validation
+pydantic==2.7.4
+
+# TOML config file support (Python < 3.11)
+tomli==2.0.1; python_version < "3.11"
+
+# YAML config file support
+PyYAML==6.0.1
+
+# Click CLI framework (optional CLI enhancement)
+click==8.1.7
+
+# ───────────────────────────────────────────────────────────────
+#  WATCHDOG — File system monitoring
+# ───────────────────────────────────────────────────────────────
+
+# Watch forge/active for changes
+watchdog==4.0.1
+
+# ───────────────────────────────────────────────────────────────
+#  PYTHON BINDINGS — pybind11 bridge
+# ───────────────────────────────────────────────────────────────
+
+# pybind11 for C++ bindings
+pybind11==2.12.0
+
+# ───────────────────────────────────────────────────────────────
+#  DEVELOPMENT — Not needed in production
+# ───────────────────────────────────────────────────────────────
+
+# Code formatter
+black==24.4.2
+
+# Linter
+ruff==0.4.10
+
+# Type checker
+mypy==1.10.1
+
+# Test runner
+pytest==8.2.2
+
+# Test coverage
+pytest-cov==5.0.0
+
+# Async test support
+pytest-asyncio==0.23.7
+
+# Better test output
+pytest-rich==0.1.1
+
+# ───────────────────────────────────────────────────────────────
+#  TYPE STUBS
+# ───────────────────────────────────────────────────────────────
+
+types-PyYAML==6.0.12.20240311
+types-tqdm==4.66.0.20240417

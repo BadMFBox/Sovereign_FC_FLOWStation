@@ -1,0 +1,46 @@
+// ═══════════════════════════════════════════════════════════════
+//  vscode-extension/package.json
+// ═══════════════════════════════════════════════════════════════
+{
+  "name": "flowstation",
+  "displayName": "AiZQuad FlowStation Lab",
+  "description": "Sovereign command center for organized, privacy-first development",
+  "version": "1.0.0",
+  "publisher": "AiZQuad",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "flowstation.unlock",
+        "title": "FlowStation: Unlock"
+      },
+      {
+        "command": "flowstation.lock",
+        "title": "FlowStation: Lock"
+      },
+      {
+        "command": "flowstation.runPipeline",
+        "title": "FlowStation: Run Pipeline"
+      },
+      {
+        "command": "flowstation.aiChat",
+        "title": "FlowStation: AI Chat"
+      }
+    ],
+    "configuration": {
+      "title": "FlowStation",
+      "properties": {
+        "flowstation.openaiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key for AI agent"
+        }
+      }
+    }
+  }
+}

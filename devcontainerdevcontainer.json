@@ -1,0 +1,238 @@
+{
+  "name": "AiZQuad Lab - Sovereign PEU",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/cpp:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/cmake:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  "containerEnv": {
+    "LAB_MODE": "collaborative",
+    "SOVEREIGN_ENV": "development",
+    "MESH_MODE": "local",
+    "CALLBACK_ALLOWED": "false",
+    "SOVEREIGN_ROOT": "/workspace",
+    "LAB_SESSION_ID": "${localEnv:USER}-${localEnv:HOSTNAME}",
+    "AIZQUAD_LAB": "true"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Core Language Support
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.makefile-tools",
+
+        // AI Collaboration
+        "GitHub.Copilot",
+        "GitHub.Copilot-Chat",
+
+        // Code Quality
+        "charliermarsh.ruff",
+        "streetsidesoftware.code-spell-checker",
+
+        // Git & Source Control
+        "eamodio.gitlens",
+
+        // Debug & Low Level
+        "ms-vscode.hexdump",
+        "vadimcn.vscode-lldb",
+
+        // Container & Remote
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode.remote-explorer",
+        "ms-azuretools.vscode-docker",
+
+        // Config & Markup
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "yzhang.markdown-all-in-one",
+
+        // Live Testing & Collaboration
+        "ms-vscode.live-server",
+        "ms-vsliveshare.vsliveshare",
+
+        // Lab Utilities
+        "usernamehw.errorlens",
+        "oderwat.indent-rainbow",
+        "PKief.material-icon-theme"
+      ],
+
+      "settings": {
+        // Editor
+        "editor.formatOnSave": true,
+        "editor.fontSize": 14,
+        "editor.fontFamily": "'Cascadia Code', 'Courier New', monospace",
+        "editor.fontLigatures": true,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4,
+        "editor.wordWrap": "on",
+        "editor.minimap.enabled": true,
+        "editor.bracketPairColorization.enabled": true,
+        "editor.guides.bracketPairs": true,
+        "editor.inlineSuggest.enabled": true,
+        "editor.suggestSelection": "first",
+
+        // Python — Ruff handles formatting
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "python.linting.enabled": false,
+        "python.linting.pylintEnabled": false,
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+
+        // C++
+        "[cpp]": {
+          "editor.defaultFormatter": "ms-vscode.cpptools",
+          "editor.formatOnSave": true,
+          "editor.wordBasedSuggestions": "off"
+        },
+        "C_Cpp.formatting": "clangFormat",
+        "C_Cpp.clang_format_style": "file",
+        "C_Cpp.clang_format_fallbackStyle": "LLVM",
+        "cpp.clangFormatOnSave": true,
+
+        // CMake
+        "cmake.configureOnOpen": true,
+        "cmake.automaticReconfigure": true,
+        "cmake.showOptionsMovedNotification": false,
+
+        // Terminal
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontSize": 13,
+        "terminal.integrated.fontFamily": "'Cascadia Code', monospace",
+        "terminal.integrated.cursorStyle": "line",
+        "terminal.integrated.cursorBlinking": true,
+        "terminal.integrated.scrollback": 10000,
+        "terminal.integrated.env.linux": {
+          "TERM": "xterm-256color",
+          "PS1": "\\[\\033[1;36m\\][AiZQuad Lab]\\[\\033[0m\\] \\w $ "
+        },
+
+        // Files
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true,
+          "**/build": true,
+          "**/dist": true,
+          "**/.cmake_cache": true,
+          "**/.pytest_cache": true
+        },
+        "files.watcherExclude": {
+          "**/build/**": true,
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/node_modules/**": true
+        },
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1000,
+
+        // Debug
+        "debug.console.fontSize": 13,
+        "debug.console.wordWrap": true,
+        "debug.toolBarLocation": "docked",
+
+        // Git
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "git.enableSmartCommit": true,
+        "gitlens.codeLens.enabled": true,
+        "gitlens.currentLine.enabled": true,
+
+        // Workbench
+        "window.title": "${folderName} - AiZQuad Lab - Sovereign PEU",
+        "workbench.colorTheme": "Default Dark Modern",
+        "workbench.iconTheme": "material-icon-theme",
+        "workbench.startupEditor": "none",
+        "workbench.commandPalette.preserveInput": true,
+        "workbench.editor.enablePreview": false,
+        "workbench.tree.indent": 20,
+
+        // Extensions
+        "extensions.autoUpdate": true,
+        "extensions.ignoreRecommendations": false,
+
+        // GitHub Copilot
+        "github.copilot.enable": {
+          "*": true,
+          "plaintext": false,
+          "markdown": true
+        },
+        "github.copilot.chat.localeOverride": "en",
+
+        // Error Lens (inline errors)
+        "errorLens.enabled": true,
+        "errorLens.followCursor": "activeLine",
+
+        // Sovereign Lab Settings
+        "aizquad.lab.mode": "collaborative",
+        "aizquad.lab.sync": true,
+        "aizquad.lab.sessionLog": "shared/chat_log.md"
+      }
+    }
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/.lab,target=/workspace/.lab,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/shared,target=/workspace/shared,type=bind,consistency=cached"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "remoteUser": "vscode",
+
+  "forwardPorts": [8000, 8080, 9000, 3000],
+
+  "portsAttributes": {
+    "8000": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Test Server",
+      "onAutoForward": "notify"
+    },
+    "9000": {
+      "label": "Mesh Communication",
+      "onAutoForward": "notify"
+    },
+    "3000": {
+      "label": "Lab Dashboard",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  "updateContentCommand": "make lab-status",
+
+  "postStartCommand": "echo '╔═══════════════════════════════════════════╗' && echo '║     AiZQuad Lab — Sovereign PEU          ║' && echo '║  [ 1 ]  ◈  [ 2 ]  BMB · FC_FLOW MESH    ║' && echo '║  [ 4 ]  ◈  [ 3 ]                        ║' && echo '╚═══════════════════════════════════════════╝' && echo '' && echo 'Type: make help' && echo ''",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true
+    }
+  }
+}

@@ -1,0 +1,16 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find dependencies
+find_dependency(Threads REQUIRED)
+
+if(@ENABLE_PYTHON_BINDINGS@)
+    find_dependency(Python3 COMPONENTS Interpreter Development REQUIRED)
+    find_dependency(pybind11 CONFIG REQUIRED)
+endif()
+
+# Include targets
+include("${CMAKE_CURRENT_LIST_DIR}/AiZQuadTargets.cmake")
+
+check_required_components(AiZQuad)

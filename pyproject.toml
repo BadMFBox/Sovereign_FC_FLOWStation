@@ -1,0 +1,82 @@
+# ═══════════════════════════════════════════════════════════════
+#  AiZQuad Lab — Python Project Config
+#  Tool configuration consolidated in one file
+# ═══════════════════════════════════════════════════════════════
+
+[tool.black]
+line-length    = 88
+target-version = ["py311", "py312"]
+include        = '\.pyi?$'
+exclude        = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "S",   # bandit security
+    "N",   # pep8-naming
+]
+ignore = [
+    "E501",  # line too long (black handles this)
+    "S101",  # assert statements ok in tests
+    "B008",  # do not perform function calls in defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]
+
+[tool.mypy]
+python_version         = "3.11"
+strict                 = true
+warn_return_any        = true
+warn_unused_configs    = true
+disallow_untyped_defs  = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths     = ["tests"]
+python_files  = ["test_*.py"]
+python_classes= ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode  = "auto"
+addopts       = [
+    "-v",
+    "--tb=short",
+    "--cov=.",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+]
+
+[tool.coverage.run]
+source  = ["."]
+omit    = [
+    ".venv/*",
+    "tests/*",
+    "build/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

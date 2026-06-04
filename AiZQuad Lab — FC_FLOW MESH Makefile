@@ -1,0 +1,576 @@
+# ═══════════════════════════════════════════════════════════════
+#  AiZQuad Lab — FC_FLOW MESH Makefile
+#  Sovereign development pipeline automation
+#
+#  The four phases, one command each.
+#  Clean. Simple. Sovereign.
+#
+#  Founder: Juan Jaime Rivera Zamorano
+# ═══════════════════════════════════════════════════════════════
+
+.PHONY: help install clean reset status
+.PHONY: forge lock split sort integrate verify build
+.PHONY: unlock lock-ws list audit access
+.PHONY: test lint format check
+.PHONY: cpp-build cpp-clean cpp-test
+.PHONY: deploy package release
+.DEFAULT_GOAL := help
+
+# ───────────────────────────────────────────────────────────────
+#  COLORS
+# ───────────────────────────────────────────────────────────────
+
+CYAN    := \033[96m
+GREEN   := \033[92m
+YELLOW  := \033[93m
+RED     := \033[91m
+BOLD    := \033[1m
+RESET   := \033[0m
+DIM     := \033[2m
+BLUE    := \033[94m
+
+# ───────────────────────────────────────────────────────────────
+#  CONFIGURATION
+# ───────────────────────────────────────────────────────────────
+
+PYTHON       := python3
+PIP          := pip3
+CMAKE        := cmake
+GCC          := gcc
+GPP          := g++
+
+ROOM         ?= room-0
+VERSION      ?= v1
+BUILD_TYPE   ?= Release
+
+PROJECT_ROOT := $(shell pwd)
+FORGE_DIR    := $(PROJECT_ROOT)/forge
+SHARED_DIR   := $(PROJECT_ROOT)/shared
+MESH_DIR     := $(PROJECT_ROOT)/integration/output/mesh
+
+VENV_DIR     := $(PROJECT_ROOT)/.venv
+VENV_BIN     := $(VENV_DIR)/bin
+VENV_PYTHON  := $(VENV_BIN)/python
+VENV_PIP     := $(VENV_BIN)/pip
+
+BUILD_DIR    := $(PROJECT_ROOT)/build
+CPP_BUILD    := $(BUILD_DIR)/cpp
+
+# ───────────────────────────────────────────────────────────────
+#  HELP
+# ───────────────────────────────────────────────────────────────
+
+help: ## Show this help message
+	@echo ""
+	@echo "$(CYAN)$(BOLD)╔═══════════════════════════════════════════════════════════════╗$(RESET)"
+	@echo "$(CYAN)$(BOLD)║  AiZQuad Lab — FC_FLOW MESH                                  ║$(RESET)"
+	@echo "$(CYAN)$(BOLD)║  Sovereign Development Pipeline                              ║$(RESET)"
+	@echo "$(CYAN)$(BOLD)╚═══════════════════════════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@echo "$(BOLD)PHASE 1 — LOCK$(RESET)"
+	@echo "  $(GREEN)make forge$(RESET) ROOM=$(ROOM)        Create active workspace"
+	@echo "  $(GREEN)make lock$(RESET)  ROOM=$(ROOM) V=$(VERSION)   Lock work into immutable snapshot"
+	@echo ""
+	@echo "$(BOLD)PHASE 2 — SPLIT$(RESET)"
+	@echo "  $(GREEN)make split$(RESET) ROOM=$(ROOM)        Split monolith into modules"
+	@echo ""
+	@echo "$(BOLD)PHASE 3 — SORT$(RESET)"
+	@echo "  $(GREEN)make sort$(RESET)  ROOM=$(ROOM)        Sort modules into categories"
+	@echo ""
+	@echo "$(BOLD)PHASE 4 — INTEGRATE$(RESET)"
+	@echo "  $(GREEN)make unlock$(RESET)                   Unlock workstation (6-digit PIN)"
+	@echo "  $(GREEN)make integrate$(RESET) ROOM=$(ROOM)   Full integration pipeline"
+	@echo "  $(GREEN)make verify$(RESET) ROOM=$(ROOM)      Verify logic lock integrity"
+	@echo "  $(GREEN)make lock-ws$(RESET)                  Lock workstation"
+	@echo ""
+	@echo "$(BOLD)AI ACCESS$(RESET)"
+	@echo "  $(GREEN)make access$(RESET) ROOM=$(ROOM) LEVEL=grant   Grant AI access"
+	@echo "  $(GREEN)make access$(RESET) ROOM=$(ROOM) LEVEL=revoke  Revoke AI access"
+	@echo "  $(GREEN)make audit$(RESET)  ROOM=$(ROOM)               Show audit log"
+	@echo ""
+	@echo "$(BOLD)FULL PIPELINE$(RESET)"
+	@echo "  $(GREEN)make build$(RESET) ROOM=$(ROOM)        Run all 4 phases"
+	@echo ""
+	@echo "$(BOLD)C++ BUILD$(RESET)"
+	@echo "  $(GREEN)make cpp-build$(RESET)                Compile C++ components"
+	@echo "  $(GREEN)make cpp-test$(RESET)                 Run C++ tests"
+	@echo "  $(GREEN)make cpp-clean$(RESET)                Clean C++ build"
+	@echo ""
+	@echo "$(BOLD)QUALITY$(RESET)"
+	@echo "  $(GREEN)make test$(RESET)                     Run all tests"
+	@echo "  $(GREEN)make lint$(RESET)                     Lint Python code"
+	@echo "  $(GREEN)make format$(RESET)                   Format code"
+	@echo "  $(GREEN)make check$(RESET)                    Type check"
+	@echo ""
+	@echo "$(BOLD)UTILITIES$(RESET)"
+	@echo "  $(GREEN)make status$(RESET)                   Show pipeline status"
+	@echo "  $(GREEN)make list$(RESET)                     List all rooms"
+	@echo "  $(GREEN)make clean$(RESET)                    Clean all outputs"
+	@echo "  $(GREEN)make reset$(RESET)                    Reset entire pipeline"
+	@echo "  $(GREEN)make install$(RESET)                  Install dependencies"
+	@echo ""
+	@echo "$(BOLD)EXAMPLES$(RESET)"
+	@echo "  $(DIM)# Full pipeline for room-2$(RESET)"
+	@echo "  $(DIM)make build ROOM=room-2$(RESET)"
+	@echo ""
+	@echo "  $(DIM)# Step by step$(RESET)"
+	@echo "  $(DIM)make forge ROOM=room-2$(RESET)"
+	@echo "  $(DIM)make lock  ROOM=room-2 V=v1$(RESET)"
+	@echo "  $(DIM)make split ROOM=room-2$(RESET)"
+	@echo "  $(DIM)make sort  ROOM=room-2$(RESET)"
+	@echo "  $(DIM)make unlock$(RESET)"
+	@echo "  $(DIM)make integrate ROOM=room-2$(RESET)"
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  SETUP
+# ───────────────────────────────────────────────────────────────
+
+install: ## Install all dependencies
+	@echo "$(CYAN)$(BOLD)Installing dependencies...$(RESET)"
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "  $(GREEN)Creating virtual environment...$(RESET)"; \
+		$(PYTHON) -m venv $(VENV_DIR); \
+	fi
+	@echo "  $(GREEN)Installing Python packages...$(RESET)"
+	@$(VENV_PIP) install --upgrade pip > /dev/null 2>&1
+	@if [ -f requirements.txt ]; then \
+		$(VENV_PIP) install -r requirements.txt > /dev/null 2>&1; \
+	fi
+	@$(VENV_PIP) install black ruff mypy pytest > /dev/null 2>&1
+	@echo "  $(GREEN)✓ Dependencies installed$(RESET)"
+	@echo ""
+	@echo "  $(DIM)Activate venv: source .venv/bin/activate$(RESET)"
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  PHASE 1 — LOCK
+# ───────────────────────────────────────────────────────────────
+
+forge: ## Create active workspace for a room
+	@echo ""
+	@echo "$(CYAN)$(BOLD)╔═══════════════════════════════════════════╗$(RESET)"
+	@echo "$(CYAN)$(BOLD)║  PHASE 1 — FORGE                         ║$(RESET)"
+	@echo "$(CYAN)$(BOLD)╚═══════════════════════════════════════════╝$(RESET)"
+	@mkdir -p $(FORGE_DIR)/active/$(ROOM)
+	@echo "  $(GREEN)✓ Workspace ready: forge/active/$(ROOM)/$(RESET)"
+	@echo ""
+	@echo "  $(DIM)Write your code in: forge/active/$(ROOM)/$(RESET)"
+	@echo "  $(DIM)When done: make lock ROOM=$(ROOM) V=v1$(RESET)"
+	@echo ""
+
+lock: ## Lock active work into immutable snapshot
+	@echo ""
+	@$(PYTHON) flow_lock.py lock $(ROOM) $(VERSION)
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  PHASE 2 — SPLIT
+# ───────────────────────────────────────────────────────────────
+
+split: ## Split locked code into modules
+	@echo ""
+	@$(PYTHON) flow_split.py split $(ROOM)
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  PHASE 3 — SORT
+# ───────────────────────────────────────────────────────────────
+
+sort: ## Sort modules into categories
+	@echo ""
+	@$(PYTHON) flow_sort.py sort $(ROOM)
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  PHASE 4 — INTEGRATE
+# ───────────────────────────────────────────────────────────────
+
+unlock: ## Unlock workstation with PIN
+	@echo ""
+	@$(PYTHON) flow_integrate.py unlock
+	@echo ""
+
+lock-ws: ## Lock workstation
+	@echo ""
+	@$(PYTHON) flow_integrate.py lock
+	@echo ""
+
+integrate: ## Run full integration pipeline
+	@echo ""
+	@$(PYTHON) flow_integrate.py build $(ROOM)
+	@echo ""
+
+verify: ## Verify logic lock integrity
+	@echo ""
+	@$(PYTHON) flow_integrate.py verify $(ROOM)
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  AI ACCESS CONTROL
+# ───────────────────────────────────────────────────────────────
+
+access: ## Manage AI access (LEVEL=grant|revoke)
+	@echo ""
+	@$(PYTHON) flow_integrate.py access $(ROOM) $(LEVEL)
+	@echo ""
+
+audit: ## Show audit log for room
+	@echo ""
+	@$(PYTHON) flow_integrate.py audit $(ROOM)
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  FULL PIPELINE
+# ───────────────────────────────────────────────────────────────
+
+build: forge lock split sort integrate ## Run complete pipeline
+	@echo ""
+	@echo "$(GREEN)$(BOLD)╔═══════════════════════════════════════════╗$(RESET)"
+	@echo "$(GREEN)$(BOLD)║  PIPELINE COMPLETE — $(ROOM)              ║$(RESET)"
+	@echo "$(GREEN)$(BOLD)╚═══════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@echo "  Room      : $(CYAN)$(ROOM)$(RESET)"
+	@echo "  Output    : integration/output/mesh/$(ROOM)/"
+	@echo "  Next step : $(DIM)make verify ROOM=$(ROOM)$(RESET)"
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  C++ BUILD
+# ───────────────────────────────────────────────────────────────
+
+cpp-build: ## Build C++ components
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Building C++ components...$(RESET)"
+	@mkdir -p $(CPP_BUILD)
+	@cd $(CPP_BUILD) && \
+		$(CMAKE) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ../.. && \
+		$(CMAKE) --build . --config $(BUILD_TYPE)
+	@echo "  $(GREEN)✓ C++ build complete$(RESET)"
+	@echo ""
+
+cpp-test: cpp-build ## Run C++ tests
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Running C++ tests...$(RESET)"
+	@cd $(CPP_BUILD) && ctest --output-on-failure
+	@echo ""
+
+cpp-clean: ## Clean C++ build
+	@echo "  $(YELLOW)Cleaning C++ build...$(RESET)"
+	@rm -rf $(CPP_BUILD)
+	@echo "  $(GREEN)✓ C++ build cleaned$(RESET)"
+
+# ───────────────────────────────────────────────────────────────
+#  QUALITY CHECKS
+# ───────────────────────────────────────────────────────────────
+
+test: ## Run all Python tests
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Running tests...$(RESET)"
+	@if [ -d "$(VENV_DIR)" ]; then \
+		$(VENV_PYTHON) -m pytest tests/ -v; \
+	else \
+		$(PYTHON) -m pytest tests/ -v; \
+	fi
+	@echo ""
+
+lint: ## Lint Python code with ruff
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Linting code...$(RESET)"
+	@if [ -d "$(VENV_DIR)" ]; then \
+		$(VENV_BIN)/ruff check *.py; \
+	else \
+		ruff check *.py; \
+	fi
+	@echo "  $(GREEN)✓ Lint complete$(RESET)"
+	@echo ""
+
+format: ## Format code with black
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Formatting code...$(RESET)"
+	@if [ -d "$(VENV_DIR)" ]; then \
+		$(VENV_BIN)/black *.py; \
+	else \
+		black *.py; \
+	fi
+	@echo "  $(GREEN)✓ Format complete$(RESET)"
+	@echo ""
+
+check: ## Type check with mypy
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Type checking...$(RESET)"
+	@if [ -d "$(VENV_DIR)" ]; then \
+		$(VENV_BIN)/mypy *.py --ignore-missing-imports; \
+	else \
+		mypy *.py --ignore-missing-imports; \
+	fi
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  UTILITIES
+# ───────────────────────────────────────────────────────────────
+
+status: ## Show pipeline status
+	@echo ""
+	@$(PYTHON) flow_integrate.py status
+	@echo ""
+
+list: ## List all rooms
+	@echo ""
+	@echo "$(CYAN)$(BOLD)All Rooms$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Locked:$(RESET)"
+	@if [ -d "forge/locked" ]; then \
+		ls -1 forge/locked/*.lock.json 2>/dev/null | \
+		sed 's|forge/locked/||g' | sed 's|.lock.json||g' | \
+		awk '{print "  🔒 " $$0}' || echo "  $(DIM)none$(RESET)"; \
+	else \
+		echo "  $(DIM)none$(RESET)"; \
+	fi
+	@echo ""
+	@echo "$(BOLD)Split:$(RESET)"
+	@if [ -d "splitter/output" ]; then \
+		ls -d splitter/output/*/ 2>/dev/null | \
+		sed 's|splitter/output/||g' | sed 's|/||g' | \
+		awk '{print "  📦 " $$0}' || echo "  $(DIM)none$(RESET)"; \
+	else \
+		echo "  $(DIM)none$(RESET)"; \
+	fi
+	@echo ""
+	@echo "$(BOLD)Sorted:$(RESET)"
+	@if [ -d "sorter/output" ]; then \
+		ls -d sorter/output/*/ 2>/dev/null | \
+		sed 's|sorter/output/||g' | sed 's|/||g' | \
+		awk '{print "  🗂  " $$0}' || echo "  $(DIM)none$(RESET)"; \
+	else \
+		echo "  $(DIM)none$(RESET)"; \
+	fi
+	@echo ""
+	@echo "$(BOLD)Integrated:$(RESET)"
+	@if [ -d "integration/output/mesh" ]; then \
+		ls -d integration/output/mesh/*/ 2>/dev/null | \
+		sed 's|integration/output/mesh/||g' | sed 's|/||g' | \
+		awk '{print "  🔌 " $$0}' || echo "  $(DIM)none$(RESET)"; \
+	else \
+		echo "  $(DIM)none$(RESET)"; \
+	fi
+	@echo ""
+
+clean: ## Clean all output directories
+	@echo ""
+	@echo "$(YELLOW)$(BOLD)Cleaning outputs...$(RESET)"
+	@rm -rf splitter/output/*
+	@rm -rf sorter/output/*
+	@rm -rf sorter/input/*
+	@rm -rf integration/merge/*
+	@rm -rf integration/input/*
+	@rm -rf $(BUILD_DIR)
+	@echo "  $(GREEN)✓ Cleaned$(RESET)"
+	@echo ""
+
+reset: clean ## Reset entire pipeline (WARNING: deletes everything)
+	@echo ""
+	@echo "$(RED)$(BOLD)⚠  RESET PIPELINE$(RESET)"
+	@echo "  $(YELLOW)This will DELETE:$(RESET)"
+	@echo "    - All locked versions"
+	@echo "    - All split modules"
+	@echo "    - All sorted files"
+	@echo "    - All integrated mesh"
+	@echo "    - All logic locks"
+	@echo "    - Session data"
+	@echo ""
+	@read -p "  Type 'RESET' to confirm: " confirm; \
+	if [ "$$confirm" = "RESET" ]; then \
+		echo "  $(RED)Resetting...$(RESET)"; \
+		rm -rf forge/locked/*; \
+		rm -rf forge/versions/*; \
+		rm -rf splitter/output/*; \
+		rm -rf sorter/output/*; \
+		rm -rf integration/merge/*; \
+		rm -rf integration/output/*; \
+		rm -rf integration/logic_locks/*; \
+		rm -rf shared/.session; \
+		rm -rf $(BUILD_DIR); \
+		echo "  $(GREEN)✓ Pipeline reset$(RESET)"; \
+	else \
+		echo "  $(YELLOW)Aborted$(RESET)"; \
+	fi
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  DEPLOYMENT
+# ───────────────────────────────────────────────────────────────
+
+package: ## Package mesh for distribution
+	@echo ""
+	@echo "$(CYAN)$(BOLD)Packaging mesh...$(RESET)"
+	@mkdir -p dist
+	@tar -czf dist/mesh-$(shell date +%Y%m%d-%H%M%S).tar.gz \
+		integration/output/mesh/ \
+		integration/logic_locks/ \
+		shared/pipeline_state.json
+	@echo "  $(GREEN)✓ Package created in dist/$(RESET)"
+	@echo ""
+
+release: test lint verify package ## Create release (test + lint + verify + package)
+	@echo ""
+	@echo "$(GREEN)$(BOLD)╔═══════════════════════════════════════════╗$(RESET)"
+	@echo "$(GREEN)$(BOLD)║  RELEASE READY                           ║$(RESET)"
+	@echo "$(GREEN)$(BOLD)╚═══════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@echo "  All checks passed."
+	@echo "  Package ready in dist/"
+	@echo ""
+
+# ───────────────────────────────────────────────────────────────
+#  GUARDS
+# ───────────────────────────────────────────────────────────────
+
+.PHONY: check-room
+check-room:
+	@if [ -z "$(ROOM)" ]; then \
+		echo "$(RED)✗ ROOM not specified$(RESET)"; \
+		echo "  Usage: make <target> ROOM=room-name"; \
+		exit 1; \
+	fi
+
+.PHONY: check-version
+check-version:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)✗ VERSION not specified$(RESET)"; \
+		echo "  Usage: make lock ROOM=$(ROOM) V=v1"; \
+		exit 1; \
+	fi
+# ═══════════════════════════════════════════════════════════════
+#  Makefile additions — AI chat integration
+# ═══════════════════════════════════════════════════════════════
+
+.PHONY: ai-chat
+ai-chat: ## Ask AI about a room (requires ROOM=<name> QUERY="<question>")
+	@$(PYTHON) -c "from ai_agent import AIAgent; \
+	               from terminal_bridge import TerminalBridge; \
+	               bridge = TerminalBridge('.'); \
+	               agent = AIAgent(bridge, '$(OPENAI_KEY)'); \
+	               resp = agent.ask({'room': '$(ROOM)', 'query': '$(QUERY)'}); \
+	               print(resp['answer'])"
+
+.PHONY: ai-status
+ai-status: ## Show current AI access for all rooms
+	@$(PYTHON) -c "from terminal_bridge import TerminalBridge; \
+	               bridge = TerminalBridge('.'); \
+	               access = bridge.getAIAccessMap(); \
+	               for room, rec in access.items(): \
+	                   if rec['active']: \
+	                       print(f'{room}: {rec[\"level\"]} (granted {rec[\"grantedAt\"]})')"
+
+# Usage:
+# make ai-chat ROOM=room-payments QUERY="What does the refund function do?"
+# make ai-status
+# ══════════════════════════════════════════════════════
+#  Fluid Layer Commands — complement, never override
+# ══════════════════════════════════════════════════════
+
+.PHONY: fluid-scan
+fluid-scan: ## Scan room and label what fluid layer sees
+	@$(NODE) -e "
+	  const { FluidScanner }  = require('./FluidScanner');
+	  const { FluidDisplay }  = require('./FluidDisplay');
+	  const { getBridge }     = require('./TerminalBridgeFactory');
+	  const bridge = getBridge('.');
+	  const scanner = new FluidScanner(bridge);
+	  const scan = scanner.scan('forge/active/$(ROOM)', '$(ROOM)');
+	  FluidDisplay.render(scan);
+	"
+
+.PHONY: fluid-status
+fluid-status: ## Compact fluid status for all rooms
+	@$(NODE) -e "
+	  const { FluidScanner } = require('./FluidScanner');
+	  const { FluidDisplay } = require('./FluidDisplay');
+	  const { getBridge }    = require('./TerminalBridgeFactory');
+	  const bridge = getBridge('.');
+	  const scanner = new FluidScanner(bridge);
+	  const scan = scanner.scan('forge/active/$(ROOM)', '$(ROOM)');
+	  FluidDisplay.renderCompact(scan);
+	"
+
+# YOUR core actions — always here, always yours
+.PHONY: lock split sort integrate
+lock:      ## 🔒 Phase 1 — Lock room
+split:     ## ✂️  Phase 2 — Split room
+sort:      ## 🗂  Phase 3 — Sort room
+integrate: ## 🔗  Phase 4 — Integrate room
+
+# Usage:
+# make fluid-scan ROOM=room-payments   ← see the map
+# make lock ROOM=room-payments         ← YOUR action
+
+# ═══════════════════════════════════════════════════════════════
+#  AiZQuad FlowStation Lab — Makefile
+#  Fluid Dialog Commands
+# ═══════════════════════════════════════════════════════════════
+
+.PHONY: fluid-dialog
+fluid-dialog: ## Start fluid dialog for a room (ROOM=<name> VERSION=<version> RESUME=<true|false>)
+	@$(NODE) -e " \
+	  const { FluidDialog }  = require('./dist/FluidDialog'); \
+	  const { getBridge }    = require('./dist/TerminalBridgeFactory'); \
+	  const bridge = getBridge('.'); \
+	  const dialog = new FluidDialog(bridge, { \
+	    room:    '$(ROOM)', \
+	    version: '$(VERSION)', \
+	    resume:  $(RESUME) === 'true' \
+	  }); \
+	  dialog.start().then(plan => { \
+	    if (plan) { \
+	      console.log('\n✅ Dialog complete. Plan saved.'); \
+	      process.exit(0); \
+	    } else { \
+	      console.log('\n⚠  Dialog ended without completing plan.'); \
+	      process.exit(1); \
+	    } \
+	  }).catch(err => { \
+	    console.error('Dialog error:', err.message); \
+	    process.exit(1); \
+	  }); \
+	"
+
+.PHONY: fluid-resume
+fluid-resume: ## Resume a paused dialog (ROOM=<name>)
+	@$(MAKE) fluid-dialog ROOM=$(ROOM) VERSION=auto RESUME=true
+
+.PHONY: fluid-plans
+fluid-plans: ## List all saved dialog plans
+	@echo ""
+	@echo "══════════════════════════════════════════════════════"
+	@echo "  FlowStation — Saved Dialog Plans"
+	@echo "══════════════════════════════════════════════════════"
+	@if [ -d "shared/dialog_plans" ]; then \
+	  for plan in shared/dialog_plans/*.plan.json; do \
+	    if [ -f "$$plan" ]; then \
+	      room=$$(basename $$plan | cut -d'-' -f1); \
+	      version=$$(basename $$plan | cut -d'-' -f2); \
+	      timestamp=$$(stat -f%Sm -t "%Y-%m-%d %H:%M" "$$plan" 2>/dev/null || stat -c%y "$$plan" | cut -d' ' -f1,2 | cut -d: -f1,2); \
+	      echo "  $$room @ $$version  —  $$timestamp"; \
+	    fi \
+	  done \
+	else \
+	  echo "  No plans saved yet."; \
+	fi
+	@echo ""
+
+.PHONY: fluid-view-plan
+fluid-view-plan: ## View a saved plan (PLAN=<filename>)
+	@if [ -f "shared/dialog_plans/$(PLAN)" ]; then \
+	  cat shared/dialog_plans/$(PLAN) | jq .; \
+	else \
+	  echo "Plan not found: $(PLAN)"; \
+	  echo "Run 'make fluid-plans' to see available plans."; \
+	fi
+
+# Usage examples:
+# make fluid-dialog ROOM=room-payments VERSION=v1
+# make fluid-resume ROOM=room-payments
+# make fluid-plans
+# make fluid-view-plan PLAN=room-payments-v1-1234567890.plan.json
+
