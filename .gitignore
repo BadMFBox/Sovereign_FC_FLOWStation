@@ -1,0 +1,31 @@
+# Secrets
+shared/.pin
+*.enc
+*.salt
+scramble.*
+justice_logs.db
+data/
+
+# Runtime folders
+runtime/
+ai_feeds/
+vault/
+phases/
+exports/
+rooms/*/.active
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.coverage
+.pytest_cache/
+
+# Logs
+*.log
+audit.log
+commander.log
+
+# OS
+.DS_Store
+Thumbs.db
