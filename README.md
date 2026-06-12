@@ -1,28 +1,28 @@
-# SOVEREIGN-FLOWZtation
+# SOVEREIGN FLOWZTATION
 
 **FC_FLOW MESH — SOVEREIGN REACTIVE DEVELOPMENT ENGINE**
 
 <p align="center">
-  <img src="https://github.com/BadMFBox/Sovereign-FlowStation/blob/main/.github/assets/banner.png" width="100%" alt="SOVEREIGN-FLOWZtation">
+  <img src="https://github.com/BadMFBox/Sovereign-FlowStation/blob/main/.github/assets/banner.png" width="100%" alt="SOVEREIGN FLOWZTATION">
 </p>
 
 > **“This is not only mine. I built it for developers and the community. Play nice. Be fair. Support the movement and help create the future.”**
 
 ---
 
-## What is SOVEREIGN-FLOWZtation?
+## What is SOVEREIGN FLOWZTATION?
 
-**SOVEREIGN-FLOWZtation** is a **SOVEREIGN REACTIVE DEVELOPMENT ENGINE**.
+**SOVEREIGN FLOWZTATION** is a **SOVEREIGN REACTIVE DEVELOPMENT ENGINE**.
 
-It treats AI like a controlled worker, not an all-powerful tool:
+It treats AI like a **controlled worker**:
 
-- AI clocks in and receives only the logic you explicitly allow.
+- AI clocks in and receives only the logic you allow.
 - You do the real work: comparing big scripts, merging versions, and making final decisions.
 - You **LOGIC LOCK** the final result — the AI **CANNOT TOUCH IT** anymore.
-- The pipeline continues: Split → Unixstrcturere → C++ → Upgrades → Special Tactical Ops.
-- When finished, you wipe the AI’s memory. It only catches up when it clocks back in.
+- The pipeline continues: Split → Unix structure → C++ → Upgrades → Special Tactical Ops.
+- When done, you wipe the AI’s memory. It only catches up when it clocks back in.
 
-The engine runs on an **8CV FFigure-8reactive topology** with built-in **BUZZKILL** defense. It can detect threats, escalate, and alert tthelarger SOVEREIGN PEU system (Predator Mode activation).
+The engine runs on an **8CV Figure-8 reactive topology** with built-in **BUZZKILL** defense. It can detect threats, escalate, and alert the larger SOVEREIGN PEU system (Predator Mode activation).
 
 This is the workstation layer of something much bigger.
 
@@ -54,8 +54,8 @@ The system actively validates both loops and can trigger **BUZZKILL** escalation
 
 ## Key Capabilities
 
-- **AI AS WORKER** — Strict boundaries + memory wipe
-- **LOGIC LOCK** — Final logic becomes untouchable by AI
+- **AI AS WORKER** — Strict bboundaries+ memory wipe
+- **LOGIC LOCK** — Final logic becomes untouchable
 - **LIVE TOKEN SYSTEM** — Reactive AI through your own tokens
 - **BUZZKILL DEFENSE** — Built-in escalation that can activate PEU / PREDATOR MODE
 - **FIGURE-8 VALIDATION** — Real-time dual-loop integrity
@@ -75,7 +75,7 @@ The **LOCK** step is sacred — this is where you seal the logic and cut off AI 
 
 Released under the **SOVEREIGN PUBLIC LICENSE (SPL-1.0)**.
 
-SOVEREIGN-FLOWZtation is the workstation layer being shared. The deeper defensive systems (SOVEREIGN PEU, full mesh, advanced BUZZKILL protocols) follow separate commercial terms.
+SOVEREIGN FLOWZTATION is the workstation layer being shared. The deeper defensive systems (SOVEREIGN PEU, full mesh, advanced BUZZKILL protocols) follow separate commercial terms.
 
 Full license: [`LICENSE.md`](LICENSE.md)
 
