@@ -1,86 +1,94 @@
-# AiZQuad IDE — The Bad MF Box
+# SOVEREIGN-FLOWZtation
 
-Sovereign development interface for FC_FLOW MESH.
-Built by Juan Jaime Rivera Zamorano.
+**FC_FLOW MESH — SOVEREIGN REACTIVE DEVELOPMENT ENGINE**
 
-## The 4-Room Layout
+<p align="center">
+  <img src="https://github.com/BadMFBox/Sovereign-FlowStation/blob/main/.github/assets/banner.png" width="100%" alt="SOVEREIGN-FLOWZtation">
+</p>
 
-╔═══════════════════════════════════════════╗
-║  [ 1 ] Command Post  │  [ 2 ] File Status ║
-║  ─────────────────────────────────────────║
-║  [ 4 ] AI Chat       │  [ 3 ] Terminal    ║
-╚═══════════════════════════════════════════╝
+> **“This is not only mine. I built it for developers and the community. Play nice. Be fair. Support the movement and help create the future.”**
 
-## Rooms
+---
 
-- ROOM 1 — Command Post (top left)
-  Pipeline menu, room selection, engine status
+## What is SOVEREIGN-FLOWZtation?
 
-- ROOM 2 — File Status (top right)
-  Current file, last edits, pipeline position
+**SOVEREIGN-FLOWZtation** is a **SOVEREIGN REACTIVE DEVELOPMENT ENGINE**.
 
-- ROOM 3 — Terminal + File System (bottom right)
-  Live terminal, direct tool execution
-  Input pipes straight to tools
+It treats AI like a controlled worker, not an all-powerful tool:
 
-- ROOM 4 — AI Chat (bottom left)
-  GitHub Copilot Chat
-  Suggestions, reviews, explanations
+- AI clocks in and receives only the logic you explicitly allow.
+- You do the real work: comparing big scripts, merging versions, and making final decisions.
+- You **LOGIC LOCK** the final result — the AI **CANNOT TOUCH IT** anymore.
+- The pipeline continues: Split → Unixstrcturere → C++ → Upgrades → Special Tactical Ops.
+- When finished, you wipe the AI’s memory. It only catches up when it clocks back in.
 
-## Commands
+The engine runs on an **8CV FFigure-8reactive topology** with built-in **BUZZKILL** defense. It can detect threats, escalate, and alert tthelarger SOVEREIGN PEU system (Predator Mode activation).
 
-Open the Command Palette (Ctrl+Shift+P) and type AiZQuad:
+This is the workstation layer of something much bigger.
 
-  AiZQuad: Open IDE         Open all 4 rooms
-  AiZQuad: Forge Room       Start forging a room
-  AiZQuad: Lock Room        Lock approved logic
-  AiZQuad: Verify Room      Verify lock integrity
-  AiZQuad: Split Room       Split into modules
-  AiZQuad: Build Mesh       Compile sovereign mesh
-  AiZQuad: Lab Status       Full dashboard
+---
+
+## Core Architecture
+
+### FIGURE-8 REACTIVE ENGINE
+
+Dual-loop topology with continuous cryptographic crossover validation:
+
+- **R0 SOVEREIGN FUEL** — Power & entropy source
+- **R1 LOGIC LOCK** — Cryptographic sealing
+- **R2 EVOFUSE** — Central fusion hub
+- **R3 PASSPATROL** — Crossover validation
+- **R4 FLOW CONTROL**
+- **R5 AIZQUAD**
+
+The system actively validates both loops and can trigger **BUZZKILL** escalation on anomalies.
+
+### 4-ROOM WORKSTATION
+
+- **COMMAND POST** — Pipeline control + engine status
+- **FILE STATUS** — Live tracking + lock state
+- **TERMINAL** — Direct execution
+- **AI CHAT** — Controlled reactive assistance
+
+---
+
+## Key Capabilities
+
+- **AI AS WORKER** — Strict boundaries + memory wipe
+- **LOGIC LOCK** — Final logic becomes untouchable by AI
+- **LIVE TOKEN SYSTEM** — Reactive AI through your own tokens
+- **BUZZKILL DEFENSE** — Built-in escalation that can activate PEU / PREDATOR MODE
+- **FIGURE-8 VALIDATION** — Real-time dual-loop integrity
+- **FULL LOCAL SOVEREIGNTY** — No telemetry. No external brokers.
+
+---
 
 ## The Pipeline
 
-  FORGE → SPLIT → SORT → INTEGRATE → BUILD
+**FORGE → LOCK → SPLIT → SORT → INTEGRATE**
 
-  Divide and conquer.
-  Each phase makes the logic more solid.
-  Each room easier to expand.
-  Ready for Room 5 — The Evolution Room.
+The **LOCK** step is sacred — this is where you seal the logic and cut off AI access.
 
-## Why This Exists
+---
 
-  You realized organizing the rooms
-  takes as much work as building them.
+## License
 
-  This IDE removes that friction.
-  Input goes straight to tools.
-  Status updates automatically.
-  Both rooms — you and AI — see everything.
+Released under the **SOVEREIGN PUBLIC LICENSE (SPL-1.0)**.
 
-  Sovereign. Always.
+SOVEREIGN-FLOWZtation is the workstation layer being shared. The deeper defensive systems (SOVEREIGN PEU, full mesh, advanced BUZZKILL protocols) follow separate commercial terms.
 
-## Contact
+Full license: [`LICENSE.md`](LICENSE.md)
 
-  Juan Jaime Rivera Zamorano
-  aizquadbmb@proton.me
-  ORCID: 0009-0003-4334-2844
+---
 
- # 1. Install dependencies
-cd aizquad-ide
-npm install
+**SOVEREIGN BY DESIGN.**
 
-# 2. Compile TypeScript
-npm run compile
+Work with AI.  
+Stay SOVEREIGN.
 
-# 3. Open in VS Code
-code .
+---
 
-# 4. Press F5
-# VS Code opens a new window
-# with the extension loaded
-
-# 5. Ctrl+Shift+P
-# Type: AiZQuad: Open IDE
-# Watch all 4 rooms appear
- 
+**Built by**  
+Juan Jaime Rivera Zamorano  
+ORCID: 0009-0003-4334-2844  
+aizquadbmb@proton.me
