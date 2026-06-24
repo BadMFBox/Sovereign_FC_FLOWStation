@@ -14,7 +14,7 @@
 # ───────────────────────────────────────────────────────────────
 
 # Cryptographic hashing (logic lock signatures)
-cryptography==42.0.8
+cryptography==48.0.1
 
 # Rich terminal output
 rich==13.7.1
