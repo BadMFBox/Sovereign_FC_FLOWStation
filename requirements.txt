@@ -62,7 +62,7 @@ ruff==0.4.10
 mypy==1.10.1
 
 # Test runner
-pytest==8.2.2
+pytest==9.0.3
 
 # Test coverage
 pytest-cov==5.0.0
