@@ -1,3 +1,11 @@
 {
-  "access": []
+  "access": [
+    {
+      "id": "local-dev",
+      "type": "service",
+      "allowed": ["read", "write", "admin"],
+      "notes": "local dev service account"
+    }
+  ],
+  "version": 1
 }

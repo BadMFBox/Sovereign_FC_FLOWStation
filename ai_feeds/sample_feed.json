@@ -1,0 +1,7 @@
+{
+  "id": "sample_feed",
+  "type": "metrics",
+  "items": [
+    { "ts": "2026-07-04T00:00:00Z", "v": 0 }
+  ]
+}

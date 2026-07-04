@@ -1,3 +1,17 @@
 {
-  "rooms": {}
+  "rooms": {
+    "room_0": {
+      "label": "SovereignFuel",
+      "status": "local",
+      "locked": false,
+      "meta": {}
+    },
+    "room_1": {
+      "label": "LogicLock",
+      "status": "local",
+      "locked": false,
+      "meta": {}
+    }
+  },
+  "updated_at": "2026-07-04T00:00:00Z"
 }

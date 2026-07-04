@@ -1,3 +1,7 @@
 {
-  "roster": []
+  "roster": [
+    { "id": "ai-1", "name": "FlowAgent", "role": "system" },
+    { "id": "ai-2", "name": "HelperBot", "role": "assistant" }
+  ],
+  "updated": "2026-07-04T00:00:00Z"
 }
