@@ -11,7 +11,7 @@ ipdb==0.13.13
 
 # Profiling
 py-spy==0.3.14
-memray==1.13.3
+memray==1.19.2
 
 # Security audit
 pip-audit==2.7.3
