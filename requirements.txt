@@ -14,7 +14,7 @@
 # ───────────────────────────────────────────────────────────────
 
 # Cryptographic hashing (logic lock signatures)
-cryptography==42.0.8
+cryptography==48.0.1
 
 # Rich terminal output
 rich==13.7.1
@@ -53,7 +53,7 @@ pybind11==2.12.0
 # ───────────────────────────────────────────────────────────────
 
 # Code formatter
-black==24.4.2
+black==26.3.1
 
 # Linter
 ruff==0.4.10
