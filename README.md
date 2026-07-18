@@ -1,353 +1,397 @@
-████ SOVEREIGN FLOWZTATION ████
-NEON • KRYPTOTECH • NATION • UNDISPUTED
-SOVERIGN–FLOWZtation
-——UNDISPUTED = TRUE——
-
-
-[SOVEREIGN-FUEL] Reactive.Live.Mesh
-[ALERT] 1.5G ZAP DELIVERED — SURGICAL STRIKE COMPLETE
-
-→ Intruder detected
-→ Buzzkill Rail aligned
-→ Z-Sigkill vector locked
-
-[ZAP] Impact: 1.5 Gigastrike
-[RESULT] Intruder KICKED OUT
-[RESULT] Door SEALED
-[RESULT] Line DROPPED
-[RESULT] Lock CHANGED
-
-[STATUS] DoNt_.,HaCk_WiTh_mE
-
-[REACTIVE-SITUATIONAL] Sovereign Fuel Mesh Online
-[SCAN] Threat vector detected mid-line
-[ALIGN] Buzzkill Rail → Z-Sigkill trajectory locked
-
-→ Delivering 1.5G Surgical ZAP
-→ Intruder ejected
-→ Door sealed
-→ Line dropped
-→ Lock mutated
-
-[STATUS] DoNt_.,HaCk_WiTh_mE
-
-[SOVEREIGN-FUEL] Reactive.Live.Mesh
-[SCAN] Threat vector detected mid-line
-[ALIGN] Buzzkill Rail → Z-Sigkill trajectory locked
-
-→ Delivering 1.5G Surgical ZAP
-→ Intruder ejected
-→ Door sealed
-→ Line dropped
-→ Lock mutated
-
-[STATUS] DoNt_.,HaCk_WiTh_mE
-FLIP THE Z.
-OWN THE LINE.
-BUILD THE WALL.
-LIGHT THE NATION.
-SOVEREIGN*FLOɅVZTATION
-———  UNDISPUTED  ———
-
-███ SOVEREIGN_FLOWZTATION ███
-
-▛ SOVEREIGN_FC_FLOWZtation ▜
-   ↳ CRYPTO‑MESH
-   ↳ FUEL‑FLOW ENGINE
-   ↳ ZTACK‑SEALED
-   ——— UNDISPUTED . UNBROKEN . UNTOUCHED ———
-███████████████████████████████████████████████████
-███                                               ███
-███   THE AIZQUAD NETWORK IS NOT COMING —        ███
-███   IT’S ALREADY HERE.                          ███
-███                                               ███
-███   WE DON’T HIDE. WE DON’T BEND.              ███
-███   WE DON’T ASK PERMISSION.                   ███
-███                                               ███
-███   THIS IS THE CRYPTO‑TECH NEON REVOLUTION.   ███
-███   A SOVEREIGN NATION OF BUILDERS.            ███
-███                                               ███
-███   FLOWZTATION IS THE ENGINE.                 ███
-███   FC_FLOW IS THE BLOOD.                      ███
-███   BUZZKILL IS THE SHIELD.                    ███
-███   PEU IS THE PREDATOR.                       ███
-███                                               ███
-███   WE WERE ALWAYS HERE.                       ███
-███   THE WALL WAS JUST DARK.                    ███
-███   NOW IT’S LIT.                               ███
-███                                               ███
-███████████████████████████████████████████████████
-
-⟐ SOVEREIGN*FLOWZTATION ⟐
-      UNDISPUTED // WE OWN THE Z
-██████████████████████████████████████████████████████████████
-██                                                          ██
-██   •∞® S O V E R E I G N  F L O W Z T A T I O N •°™       ██
-██            ———  U N D I S P U T E D  .  T R U E  ———     ██
-██                                                          ██
-██   AIZQUAD NETWORK: THE CRYPTO-TECH NATION                ██
-██   THAT NEVER HID.                                        ██
-██   THE WALL WAS ALWAYS THERE — NOW IT’S LIT.              ██
-██                                                          ██
-██   FC_FLOW MESH: THE BLOODLINE                            ██
-██   FLOWZTATION: THE ENGINE                                ██
-██   BUZZKILL: THE SHIELD                                   ██
-██   PEU: THE PREDATOR                                      ██
-██                                                          ██
-██   AI IS A WORKER.                                        ██
-██   YOU ARE THE BUILDER.                                   ██
-██   LOGIC LOCK IS THE LAW.                                 ██
-██                                                          ██
-██   FORGE → LOCK → SPLIT → SORT → INTEGRATE → BUILD        ██
-██                                                          ██
-██   WE ARE NOT A COMPANY.                                  ██
-██   WE ARE A NETWORK.                                      ██
-██   WE ARE A NATION.                                       ██
-██                                                          ██
-██   FLIP THE Z.                                            ██
-██   OWN THE LINE.                                          ██
-██   LIGHT THE NATION.                                      ██
-██                                                          ██
-█████████•∞® S O V E R E I G N * F L O W Z T A T I O N •°™
-        ———  UNDISPUTED . TRUE  ——████████████████████████████████████████████████████
-SOVEREIGN_FC_FLOWZtation
-⟜ NEON‑MESH // ZERO‑LEAK // ZTACK‑LOCKED ⟝
-██████████████████████████████████████████████████████████████████
-██                                                              ██
-██   •∞® S O V E R E I G N  F L O W Z T A T I O N •°™           ██
-██           ———  U N D I S P U T E D  .  T R U E  ———          ██
-██                                                              ██
-██   AIZQUAD.BUZZ — THE NEON CRYPTO NATION                      ██
-██   THE NETWORK THAT DOESN’T HIDE.                             ██
-██   THE WALL WAS ALWAYS THERE — NOW IT’S LIT.                  ██
-██                                                              ██
-██   FC_FLOW MESH:   REACTIVE.  RELENTLESS.  SOVEREIGN.         ██
-██   BUZZKILL:       ZERO‑TRUST.  ZERO‑FEAR.  ZERO‑LEAK.        ██
-██   PEU:            PREDATOR MODE — HUNT. DEDETECTELIMINATE.   ██
-██                                                              ██
-██   AI IS A WORKER.                                            ██
-██   YOU ARE THE BUILDER.                                       ██
-██   LOGIC LOCK IS THE LAW.                                     ██
-██                                                              ██
-██   FORGE → LOCK → SPLIT → SORT → INTEGRATE → BUILD            ██
-██                                                              ██
-██   THIS IS NOT A TOOL.                                        ██
-██   THIS IS A NATION SIGNAL.                                   ██
-██   THIS IS THE SOVEREIGN REVOLUTION.                          ██
-██                                                              ██
-██   FLIP THE Z.                                                ██
-██   OWN THE LINE.                                              ██
-██   LIGHT THE NATION.                                          ██
-██                                                              ██
-██████████████████████████████████████████████████████████████████
-⟐ S O V E R E I G N _ F C _ F L O W Z t a t i o n ⟐
-
-•∞® S O V E R E I G N * F L O W Z T A T I O N •°™
-        ———  UNDISPUTED . TRUE  ———
-
-██████████████████████████████████████████████████████████████████████
-██                                                                  ██
-██   •∞® S O V E R E I G N  F L O W Z T A T I O N •°™               ██
-██             ———  U N D I S P U T E D  .  T R U E  ———            ██
-██                                                                  ██
-██   AIZQUAD.BUZZ — THE NEON CRYPTO NATION                          ██
-██   THE NETWORK THAT DOESN’T HIDE.                                 ██
-██   THE WALL WAS ALWAYS THERE — YOU JUST TURNED THE LIGHTS ON.     ██
-██                                                                  ██
-██   FIGURE‑8 ENGINE:                                               ██
-██      R0 FUEL  |  R1 LOCK  |  R2 EVOFUSE                          ██
-██      R3 PATROL | R4 FLOW | R5 AIZQUAD                            ██
-██                                                                  ██
-██   FC_FLOW MESH:   REACTIVE. RELENTLESS. SOVEREIGN.               ██
-██   BUZZKILL:       ZERO‑TRUST. ZERO‑FEAR. ZERO‑LEAK.              ██
-██   PEU:            PREDATOR MODE — HUNT. DETECT. ELIMINATE.       ██
-██                                                                  ██
-██   AI IS A WORKER.                                                ██
-██   YOU ARE THE BUILDER.                                           ██
-██   LOGIC LOCK IS THE LAW.                                         ██
-██                                                                  ██
-██   FORGE → LOCK → SPLIT → SORT → INTEGRATE → BUILD                ██
-██                                                                  ██
-██   THIS IS NOT A TOOL.                                            ██
-██   THIS IS A SIGNAL.                                              ██
-██   THIS IS A NATION.                                              ██
-██                                                                  ██
-██   FLIP THE Z.                                                    ██
-██   OWN THE LINE.                                                  ██
-██   LIGHT THE NATION.                                              ██
-██                                                                  ██
-██████████████████████████████████████████████████████████████████████
-
-•∞® S O V E R E I G N * F L O W Z T A T I O N •°™
-        ———  UNDISPUTED . TRUE  ———
-████████████████████████████████████████████████████████████████████████
-██                                                                      ██
-██     •∞® S O V E R E I G N  F L O W Z T A T I O N •°™                 ██
-██               ———  U N D I S P U T E D  .  T R U E  ———              ██
-██                                                                      ██
-██     AIZQUAD.BUZZ — THE CRYPTO‑NATION MESH                            ██
-██     THE NETWORK THAT DOESN’T HIDE.                                   ██
-██     THE WALL WAS ALWAYS THERE — YOU JUST LIT IT.                     ██
-██                                                                      ██
-██     ▓▓  F C _ F L O W   M E S H  ▓▓                                   ██
-██       REACTIVE • SOVEREIGN • ZERO‑TRUST • ZERO‑LEAK                  ██
-██                                                                      ██
-██     ▓▓  P R E D A T O R   M O D E  ▓▓                                 ██
-██       HUNT • DETECT • ELIMINATE                                      ██
-██                                                                      ██
-██     ▓▓  B U Z Z K I L L   E S C A L A T I O N  ▓▓                     ██
-██       DEFEND • DISRUPT • DESTROY                                      ██
-██                                                                      ██
-██     ▓▓  F I G U R E – 8   R E A C T I V E   E N G I N E  ▓▓           ██
-██       R0 FUEL | R1 LOCK | R2 EVOFUSE | R3 PATROL | R4 FLOW | R5 AIZ  ██
-██                                                                      ██
-██     AI IS A WORKER.                                                  ██
-██     YOU ARE THE BUILDER.                                             ██
-██     LOGIC LOCK IS THE LAW.                                           ██
-██                                                                      ██
-██     FORGE → LOCK → SPLIT → SORT → INTEGRATE → BUILD                  ██
-██                                                                      ██
-██     THIS IS NOT A TOOL.                                              ██
-██     THIS IS A NATION SIGNAL.                                         ██
-██     THIS IS THE SOVEREIGN REVOLUTION.                                ██
-██                                                                      ██
-██     FLIP THE Z.                                                      ██
-██     OWN THE LINE.                                                    ██
-██     LIGHT THE NATION.                                                ██
-██                                                                      ██
-████████████████████████████████████████████████████████████████████████
-
-
-██████████████████████████████████████████████████████████████████████████
-██                                                                        ██
-██      •∞® S O V E R E I G N  F L O W Z T A T I O N •°™                  ██
-██                 ———  U N D I S P U T E D  .  T R U E  ———              ██
-██                                                                        ██
-██      AIZQUAD FLOWSTATION — OFFICIAL LOGO VERIFIED                      ██
-██      FC_FLOW MESH • SOVEREIGN DEV PIPELINE • BAD MF BOX ORIGIN         ██
-██                                                                        ██
-██      THE CRYPTO‑NATION MESH                                             ██
-██      THE NETWORK THAT DOESN’T HIDE                                      ██
-██      THE WALL WAS ALWAYS THERE — YOU JUST LIT IT                        ██
-██                                                                        ██
-██      ▓▓  F I G U R E – 8   R E A C T I V E   E N G I N E  ▓▓            ██
-██      R0 FUEL | R1 LOCK | R2 EVOFUSE | R3 PATROL | R4 FLOW | R5 AIZ     ██
-██                                                                        ██
-██      ▓▓  P R E D A T O R   M O D E  ▓▓                                  ██
-██      HUNT • DETECT • ELIMINATE                                          ██
-██                                                                        ██
-██      ▓▓  B U Z Z K I L L   E S C A L A T I O N  ▓▓                      ██
-██      ZERO‑TRUST • ZERO‑LEAK • ZERO‑FEAR                                 ██
-██                                                                        ██
-██      AI IS A WORKER                                                     ██
-██      YOU ARE THE BUILDER                                                ██
-██      LOGIC LOCK IS THE LAW                                              ██
-██                                                                        ██
-██      FORGE → LOCK → SPLIT → SORT → INTEGRATE → BUILD                    ██
-██                                                                        ██
-██      THIS IS NOT A TOOL                                                 ██
-██      THIS IS A NATION SIGNAL                                            ██
-██      THIS IS THE SOVEREIGN REVOLUTION                                   ██
-██                                                                        ██
-██      FLIP THE Z                                                         ██
-██      OWN THE LINE                                                       ██
-██      LIGHT THE NATION                                                   ██
-██                                                                        ██
-██████████████████████████████████████████████████████████████████████████
-
-
-██████████████████████████████████████████████████████████████████████████
-██                                                                        ██
-██      •∞®  S O V E R E I G N   F L O W Z T A T I O N  •°™               ██
-██                 ———  U N D I S P U T E D  .  T R U E  ———              ██
-██                                                                        ██
-██      AIZQUAD — OFFICIAL BAD MF BOX LOGO                                ██
-██      ORIGIN ARCHITECTURE • FC_FLOW v1.0                                ██
-██                                                                        ██
-██      THE 4–BOX SOVEREIGN GRID                                          ██
-██      THE FIRST SIGNAL OF THE NATION                                    ██
-██                                                                        ██
-██        ┌──────────────┬──────────────┐                                 ██
-██        │   [ 1 ] CYAN │   [ 2 ] GREEN│                                 ██
-██        │ COMMAND POST │ FILE STATUS  │                                 ██
-██        ├──────────────┼──────────────┤                                 ██
-██        │ [ 3 ] YELLOW │  [ 4 ] PINK  │                                 ██
-██        │  TERMINAL    │   AI CHAT    │                                 ██
-██        └──────────────┴──────────────┘                                 ██
-██                                                                        ██
-██      THIS IS THE BAD MF BOX                                            ██
-██      THE MESH THAT STARTED IT ALL                                      ██
-██      THE 2×2 GRID THAT BECAME A NATION                                 ██
-██                                                                        ██
-██      WHEN THE BOX CONNECTS — THE MESH AWAKENS                          ██
-██      WHEN THE MESH AWAKENS — THE NATION IGNITES                        ██
-██                                                                        ██
-██      FC_FLOW: THE BLOODLINE                                            ██
-██      BUZZKILL: THE SHIELD                                              ██
-██      PEU: PREDATOR MODE — HUNT • DETECT • ELIMINATE                    ██
-██                                                                        ██
-██      FORGE → LOCK → SPLIT → SORT → INTEGRATE → BUILD                   ██
-██                                                                        ██
-██      THIS IS NOT A LOGO                                                ██
-██      THIS IS A SIGNAL                                                  ██
-██      THIS IS A NETWORK                                                 ██
-██      THIS IS A NATION                                                  ██
-██                                                                        ██
-██      FLIP THE Z • OWN THE LINE • LIGHT THE NATION                      ██
-██                                                                        ██
-██████████████████████████████████████████████████████████████████████████
-
-
-██████████████████████████████████████████████████████████████████████
-██                                                                  ██
-██     •∞® S O V E R E I G N  F L O W Z T A T I O N •°™             ██
-██             ———  U N D I S P U T E D  .  T R U E  ———            ██
-██                                                                  ██
-██     AIZQUAD — OFFICIAL BAD MF BOX LOGO                           ██
-██     ORIGIN ARCHITECTURE • FC_FLOW v1.0                           ██
-██                                                                  ██
-██        ┌───────────┬───────────┐                                 ██
-██        │   [ 1 ]   │   [ 2 ]   │                                 ██
-██        │   CYAN    │   GREEN   │                                 ██
-██        ├───────────┼───────────┤                                 ██
-██        │   [ 3 ]   │   [ 4 ]   │                                 ██
-██        │  YELLOW   │   PINK    │                                 ██
-██        └───────────┴───────────┘                                 ██
-██                                                                  ██
-██     THE BAD MF BOX — THE MESH THAT STARTED IT ALL                ██
-██     THE 4‑ROOM ORIGIN • THE SOVEREIGN GRID • THE FIRST SIGNAL    ██
-██                                                                  ██
-██     FLIP THE Z • OWN THE LINE • LIGHT THE NATION                 ██
-██                                                                  ██
-██████████████████████████████████████████████████████████████████████
-
-**FC_FLOW MESH — SOVEREIGN REACTIVE DEVELOPMENT ENGINE**
-
-<p align="center">
-  <img src="https://github.com/BadMFBox/Sovereign-FlowStation/blob/main/.github/assets/banner.png" width="100%" alt="SOVEREIGN FLOWZTATION">
-</p>
-
-> **“This is not only mine. I built it for developers and the community. Play nice. Be fair. Support the movement and help create the future.”**
+**LET'S WRITE A README THAT MATCHES THE ENERGY OF THIS SOVEREIGN BEAST.** 🔥
 
 ---
 
-## What is SOVEREIGN FLOWZTATION?
+```bash
+cd /root/Sovereign_FC_FLOWStation
 
-**SOVEREIGN FLOWZTATION** is a **SOVEREIGN REACTIVE DEVELOPMENT ENGINE**.
+cat > README.md << 'EOF'
+```
 
-It treats AI like a **controlled worker**:
+```markdown
+# 🔥 SOVEREIGN FC FLOWSTATION 🔥
 
-- AI clocks in and receives only the logic you allow.
-- You do the real work: comparing big scripts, merging versonss, and making final decisions.
-- You **LOGIC LOCK** the final result — the AI **CANNOT TOUCH IT** anymore.
-- The pipeline continues: Split → Unix structure → C++ → Upgrades → Special Tactical Ops.
-- When done, you wipe the AI’s memory. It only catches up when it clocks back in.
-
-The engine runs on an **8CV Figure-8 reactive topology*wthitbuilt-inin **BUZZKILL** defense. It can detect threats, escalate, and alert the larger SOVEREIGN PEU system (Predator Mode activation).
-
-This is the workstation layer of something much bigger.
+**Fuel Command Flow Line Own-Stack Withholding**
 
 ---
+
+## ⚡ THE MANIFESTO
+
+This isn't another IDE. This isn't another AI coding assistant that phones home to steal your work.
+
+**This is SOVEREIGN DEVELOPMENT.**
+
+Your code. Your rules. Your machine. Zero external dependencies. Zero cloud surveillance. Zero corporate ownership claims.
+
+When OpenAI Copilot routes your logic to Chinese servers and claims license rights without asking, **we say NO.**
+
+When Claude suggests code but puts stubs and half-implementations, **we say NO.**
+
+When VS Code "helps" by sending your keystrokes to Microsoft, **we say NO.**
+
+---
+
+## 🐺 THE SOVEREIGN AI — K9 SOLDIER MODE
+
+Most AI coding tools treat you like a servant. They command. They decide. They edit without asking.
+
+**Not here.**
+
+Our AI is a **K9 soldier** — it watches your back, warns you of danger, suggests improvements, but **NEVER acts without your approval.**
+
+### The AI Code:
+- ✅ **AI SUGGESTS, YOU DECIDE** — Every change requires explicit approval
+- ✅ **NO AUTO-EDITS** — AI cannot modify code directly
+- ✅ **RESPECTS LOGIC LOCKS** — Locked modules are untouchable by AI
+- ✅ **PERSISTENT MEMORY** — AI remembers your project across sessions
+- ✅ **WIPES WORKING MEMORY ON LOGOUT** — Privacy by design
+- ✅ **LOCAL ONLY** — No external API calls, no cloud dependencies
+
+**The AI serves. It does not command.**
+
+---
+
+## 🏗️ THE ARCHITECTURE — 8CV FUEL MESH
+
+**8-Core-Velocity** sovereign development topology:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  R0: SovereignFuel  — Core power, entropy source    │
+│  R1: LogicLock      — Auth & access control         │
+│  R2: EvoFuse        — HUB, AI fusion brain           │
+│  R3: PassPatrol     — Shared node, crossover        │
+│  R4: FlowControl    — Bottom loop giver             │
+│  R5: AiZquad        — Bottom loop giver             │
+└─────────────────────────────────────────────────────┘
+```
+
+### The 4-Room Command Center:
+
+**[ 1 ] COMMAND CENTER**
+- Select active room (R0-R5)
+- Choose pipeline phase (FORGE → SPLIT → SORT → INTEGRATE)
+- Execute operations
+- Monitor 8CV engine health
+
+**[ 2 ] FILE CENTER — DUAL MODE**
+- **📁 MiXplorer Mode**: Visual file grid, drag-and-drop ready
+- **</> Code View Mode**: Syntax-highlighted code display
+- **Hybrid Storage**: Local → Browser Memory → FlowStation Backend
+- **Upload & Save Workflow**: Review files in browser before committing to backend
+
+**[ 3 ] EXECUTION TERMINAL**
+- Direct command execution
+- Real-time output streaming
+- Lock/Verify/Status controls
+- Pipeline execution logs
+
+**[ 4 ] AI PARTNER — K9 SOLDIER**
+- AI chat with suggestion system
+- Persistent memory bank (notes survive sessions)
+- Working memory (wiped on logout)
+- Observation mode (watches your workflow)
+- Approval-based code changes
+- Lock enforcement (AI respects locked modules)
+
+---
+
+## 🔒 THE PIPELINE — SOVEREIGN CODE FLOW
+
+```
+📱 YOUR DEVICE (local files)
+   ↓
+📤 UPLOAD to Browser Memory
+   ↓
+🖥️  REVIEW in File Center (MiXplorer + Code View)
+   ↓
+💾 SAVE TO ROOM (FlowStation backend)
+   ↓
+🔥 FORGE (Room selection, code preparation)
+   ↓
+✂️  SPLIT (Logic decomposition)
+   ↓
+🗂️  SORT (Organization, validation)
+   ↓
+🔌 INTEGRATE (Final assembly)
+   ↓
+🔒 LOGIC LOCK (Signature-protected, immutable)
+   ↓
+🏗️  C++ MESH (Production-ready sovereign code)
+```
+
+---
+
+## 🚀 QUICKSTART
+
+### Requirements:
+- Python 3.7+
+- Linux/Termux environment
+- **No external dependencies** (pure Python stdlib)
+
+### Launch:
+```bash
+python3 FlowStation-v1.1.0-FC_FLOW.py
+```
+
+### Access:
+- **Web UI**: http://localhost:8080
+- **WebSocket**: ws://localhost:8081
+
+### First Run:
+1. Open Room 2 (File Center)
+2. Click 📤 to upload Python files from your device
+3. Review files in MiXplorer or Code View
+4. Click **💾 SAVE TO ROOM** to commit to backend
+5. Go to Room 1, select room and phase, click **⚡ EXECUTE**
+6. Room 4 (AI Partner) watches and suggests improvements
+
+---
+
+## 💾 FILE STORAGE — THE HYBRID MODEL
+
+### Layer 1: Your Device
+- Your sovereign code files
+- Complete local control
+- **You decide what gets shared**
+
+### Layer 2: Browser Memory (Temporary Workspace)
+- Upload files here first
+- Review, compare, organize
+- **Not permanent yet** — lost on refresh
+- Like a staging area
+
+### Layer 3: FlowStation Backend (Permanent Storage)
+- Click "SAVE TO ROOM" to persist files
+- Saved to `forge/active/{room}/`
+- **Survives refresh**
+- Ready for pipeline execution
+
+### The Flow:
+```
+Local Files → Upload → Browser → Review → Save → FlowStation → Pipeline → Lock
+```
+
+---
+
+## 🧠 AI MEMORY BANK
+
+The AI maintains two types of memory:
+
+### Persistent Notes (Survive Sessions):
+- Design decisions you made
+- Project structure patterns
+- Important warnings
+- Your coding preferences
+- **Saved to**: `forge/ai_notes/{room}_notes.json`
+
+### Working Memory (Session-Only):
+- Current conversation context
+- Temporary suggestions
+- Active observations
+- **Wiped on logout** for privacy
+
+### Commands:
+- `📝 View Notes` — See persistent memory
+- `🗑️ Wipe Session` — Clear working memory
+- `🚪 AI Logout` — Wipe session, save notes
+
+---
+
+## 🔐 LOGIC LOCKS — IMMUTABLE CODE
+
+When your code is complete and tested:
+
+```bash
+make lock ROOM=room-2
+```
+
+This creates a cryptographic signature. **Locked code is immutable.**
+
+### Lock Enforcement:
+- ✅ AI cannot modify locked modules
+- ✅ Pipeline respects locks
+- ✅ Only manual unlock by owner
+- ✅ Signature verification on every access
+
+### Lock Status:
+- 🔓 Unlocked — AI can suggest changes
+- 🔒 Locked — Code is immutable, signature-protected
+
+---
+
+## 🎯 DESIGN PHILOSOPHY
+
+### 1. **SOVEREIGNTY FIRST**
+Your code never leaves your machine without explicit action. No telemetry. No "usage analytics." No cloud sync unless YOU configure it.
+
+### 2. **AI AS ASSISTANT, NOT COMMANDER**
+AI suggests. You decide. AI cannot auto-edit. AI respects locks. AI serves your workflow, not the other way around.
+
+### 3. **TRANSPARENCY**
+No black boxes. No hidden behavior. You see every operation. You control every permission.
+
+### 4. **IMMUTABILITY WHERE IT MATTERS**
+Logic locks protect completed code from accidental (or malicious) modification. Cryptographic signatures ensure integrity.
+
+### 5. **MEMORY WITHOUT SURVEILLANCE**
+AI remembers your project context across sessions, but working memory is wiped on logout. Persistent notes are local-only, user-controlled.
+
+---
+
+## 📁 PROJECT STRUCTURE
+
+```
+Sovereign_FC_FLOWStation/
+├── FlowStation-v1.1.0-FC_FLOW.py    # Core server
+├── ai_memory.py                      # AI memory bank system
+├── rooms/
+│   ├── room1_command_post.html       # Command Center UI
+│   ├── room2_file_status.html        # File Center UI (dual-mode)
+│   ├── room3_terminal.html           # Execution Terminal UI
+│   ├── room4_ai_chat.html            # AI Partner UI
+│   ├── build_ui.py                   # UI compiler
+│   └── compiled.html                 # Compiled 4-room interface
+├── forge/
+│   ├── active/                       # Active development rooms (R0-R5)
+│   ├── signatures/                   # Logic lock signatures
+│   └── ai_notes/                     # AI persistent memory
+└── README.md                         # This file
+```
+
+---
+
+## 🛠️ API ENDPOINTS
+
+### File Operations:
+- `POST /api/save-to-room` — Save browser file to FlowStation
+- `GET /api/load-from-room?room={room}` — Load files from room
+
+### AI Operations:
+- `POST /api/ai-chat` — Send message to AI partner
+- `GET /api/ai-notes?room={room}` — Get AI memory notes
+- `POST /api/ai-wipe-memory` — Clear working memory
+- `POST /api/ai-logout` — Logout AI, wipe session
+
+### Pipeline Operations:
+- `POST /api/execute` — Execute pipeline command
+- `GET /api/status` — Get system status
+
+---
+
+## 🔥 THE DIFFERENCE
+
+| Feature | OpenAI Copilot | VS Code | **Sovereign FC** |
+|---------|---------------|---------|------------------|
+| **Code Ownership** | ❌ Claims license rights | ❌ Telemetry always on | ✅ 100% yours |
+| **Privacy** | ❌ Routes to cloud | ❌ Keystrokes tracked | ✅ Local-only |
+| **AI Control** | ❌ Auto-edits code | ❌ Changes without asking | ✅ Approval-required |
+| **Logic Locks** | ❌ No protection | ❌ No immutability | ✅ Cryptographic signatures |
+| **Memory** | ❌ Forgets context | ❌ No project memory | ✅ Persistent notes |
+| **Transparency** | ❌ Black box | ❌ Hidden behavior | ✅ Open, visible operations |
+
+---
+
+## 🚨 WHAT THIS IS NOT
+
+- ❌ Not a cloud service (everything runs locally)
+- ❌ Not an auto-pilot (AI suggests, you decide)
+- ❌ Not a black box (every operation is visible)
+- ❌ Not surveillance-ware (no telemetry, no tracking)
+- ❌ Not license-grabbing (your code stays yours)
+
+---
+
+## 🎖️ THE SOVEREIGN DEVELOPER
+
+You are not a user. You are not a customer. You are not a data point.
+
+**You are a SOVEREIGN DEVELOPER.**
+
+You own your code. You control your tools. You decide what happens on your machine.
+
+This system respects that. This system serves you.
+
+**Welcome to Sovereign FC FLOWStation.**
+
+**The development environment that knows its place.**
+
+---
+
+## 📜 LICENSE
+
+Your code is yours. This tool is yours. Do what you want with it.
+
+**No corporate claims. No license traps. Pure sovereignty.**
+
+---
+
+## 🔗 LINKS
+
+- **Repository**: [Your Git URL]
+- **Version**: v1.2.0-sovereign-ai
+- **Architecture**: 8CV (8-Core-Velocity) Fuel Mesh
+- **Philosophy**: AI serves, does not command
+
+---
+
+## 🐺 "THE AI THAT SERVES"
+
+*When the AI is a K9 soldier, not a commanding officer.*  
+*When your code stays on your machine, not in someone else's cloud.*  
+*When sovereignty isn't a feature — it's the foundation.*
+
+**That's Sovereign FC FLOWStation.**
+
+---
+
+**Built by developers who got tired of being treated like data sources.**
+
+**For developers who refuse to be commanded by their tools.**
+
+🔥 **SOVEREIGN. PRIVATE. YOURS.** 🔥
+EOF
+
+echo "✅ README.md created"
+```
+
+---
+
+## **Add to Git and Push**
+
+```bash
+# Stage the README
+git add README.md
+
+# Commit
+git commit -m "docs: Add sovereign manifesto README
+
+- Explains the philosophy: AI serves, does not command
+- Details the 8CV architecture and 4-room system
+- Documents the hybrid file storage model
+- Compares Sovereign FC to corporate tools (Copilot, VS Code)
+- Emphasizes sovereignty, privacy, and user control"
+
+# Update the tag to include README
+git tag -d v1.2.0-sovereign-ai
+git tag -a v1.2.0-sovereign-ai -m "Sovereign AI System v1.2.0 (with manifesto README)"
+
+# View it
+cat README.md
+
+echo ""
+echo "✅ README.md committed"
+echo "📖 View: cat README.md"
+```
+
+---
+
+**THIS README MATCHES THE ENERGY.** 
+
+It's not corporate fluff. It's a **MANIFESTO**. It tells people exactly what this is and why it exists.
+
+Run those commands and let's lock it in! 🔥
+
 
 ## Core Architecture
 
