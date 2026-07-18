@@ -28,6 +28,7 @@ from typing import Optional, Callable, Dict, List, Set
 from dataclasses import dataclass, field
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
+from pipeline_executor import PipelineExecutor
 
 # ══════════════════════════════════════════════════════════
 # CORE
@@ -255,7 +256,7 @@ class KeyStore:
             entropy = secrets.token_bytes(KEY_SIZE)
             state = self._get_room_state(room_id, room_state_feeds)
             threat = self._get_room_threat(room_id, room_threat_feeds)
-            seed = hashlib.sha256(entropy + state + threat).digest()
+            seed = hashlib.sha256(entropy + state + threat.to_bytes(4, "big")).digest()
             salt = hashlib.sha256(
                 room_id.encode() + b"fcflow_8cv"
             ).digest()
@@ -760,7 +761,7 @@ class Figure8Engine:
             try:
                 self._cycle()
             except Exception as e:
-                self._log.error(f"8CV cycle error: {e}")
+                import traceback; self._log.error(f"8CV cycle error: {e}"); traceback.print_exc()
                 self._consecutive_fails += 1
 
             override = self._commander.consume_override()
@@ -823,9 +824,9 @@ class Figure8Engine:
     def _make_cycle_id(self) -> str:
         data = (
             self._cycle_count.to_bytes(8, "big") +
-            self._gear.value.to_bytes(1, "big") +
+            int(self._gear.value).to_bytes(1, "big") +
             str(time.monotonic()).encode() +
-            b"".join(self._keys.get(r).split for r in sorted(self._keys.all_splits()))
+            b"".join(str(self._keys.get(r).split).encode() for r in sorted(self._keys.all_splits()))
         )
         return hashlib.sha256(data).hexdigest()
 
@@ -936,8 +937,11 @@ class TokenFeed:
                 self._ensure_feed(ai)
                 path = os.path.join(FEEDS_DIR, f"{ai}.json")
                 try:
-                    with open(path, 'r') as f:
-                        data = json.load(f)
+                    try:
+                        with open(path, 'r') as f:
+                            data = json.load(f)
+                    except (json.JSONDecodeError, FileNotFoundError):
+                        data = {"agent": ai, "events": []}
                     data["events"].append(token)
                     if len(data["events"]) > MAX_FEED_EVENTS:
                         data["events"] = data["events"][-MAX_FEED_EVENTS:]
@@ -1406,9 +1410,11 @@ class WSServer:
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             srv.bind((self._host, self._port))
+            print(f'✅ WebSocket bound to {self._host}:{self._port}')
             srv.listen(MAX_WS_CLIENTS)
             srv.settimeout(1.0)
             self._log.info(f"WebSocket listening on {self._host}:{self._port}")
+            print(f'🔍 WebSocket loop starting, _running={self._running}')
             while self._running:
                 try:
                     conn, addr = srv.accept()
@@ -1417,6 +1423,7 @@ class WSServer:
                     continue
                 except Exception as e:
                     if self._running:
+                        print(f'❌ WebSocket accept loop crashed: {e}')
                         self._log.warning(f"Accept error: {e}")
                     break
         finally:
@@ -1559,6 +1566,27 @@ class WSServer:
             time.sleep(max(0.0, interval - elapsed))
 
 
+    def broadcast(self, room: str, message: str):
+        """Send a message to a specific room feed"""
+        try:
+            # Update the room's feed in web_state
+            if hasattr(self._web_state, 'rooms') and room in self._web_state.rooms:
+                self._web_state.rooms[room].add_message(message)
+            # Immediate push to connected clients
+            with self._lock:
+                clients = list(self._clients)
+            for client in clients:
+                if client.alive:
+                    try:
+                        # Send just the room update
+                        update = json.dumps({"room": room, "message": message})
+                        client.send_text(update)
+                    except Exception:
+                        client.alive = False
+        except Exception as e:
+            self._log.warning(f"Broadcast to {room} failed: {e}")
+
+
 # ── HTTP SERVER ──
 
 
@@ -1577,6 +1605,18 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
+        if self.path.startswith("/api/ai-notes"):
+            self._handle_ai_notes()
+            return
+        if self.path.startswith("/api/ai-locks"):
+            self._handle_ai_locks()
+            return
+        if self.path.startswith("/api/load-from-room"):
+            self._handle_load_from_room()
+            return
+        if self.path.startswith("/api/load-from-room"):
+            self._handle_load_from_room()
+            return
         parsed = urlparse(self.path)
         path = parsed.path
         if path == '/':
@@ -1592,6 +1632,15 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
+        if self.path == "/api/ai-chat":
+            self._handle_ai_chat()
+            return
+        if self.path == "/api/ai-wipe-memory":
+            self._handle_ai_wipe_memory()
+            return
+        if self.path == "/api/ai-logout":
+            self._handle_ai_logout()
+            return
         parsed = urlparse(self.path)
         path = parsed.path
         if path == '/command':
@@ -1611,7 +1660,8 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
 
     def _serve_html(self):
-        html = build_html()
+        with open('/root/Sovereign_FC_FLOWStation/rooms/compiled.html') as f:
+            html = f.read()
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Content-Length', str(len(html.encode())))
@@ -1668,11 +1718,23 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
                 'GEAR_SHIFT', 'BUZZKILL', 'LIVE_BURN',
                 'FLEX_LOCKDOWN', 'FLEX_UNLOCK',
                 'CLEAR_ALERTS', 'SCAFFOLD',
+                'FORGE', 'SPLIT', 'SORT', 'INTEGRATE', 'BUILD',
             }
             if cmd not in valid:
                 self._json_response({"ok": False, "error": f"Unknown command: {cmd}"}, 400)
                 return
-            self.commander.issue_override(cmd, params)
+            
+            # Route pipeline commands to executor
+            pipeline_cmds = {'FORGE', 'SPLIT', 'SORT', 'INTEGRATE', 'BUILD'}
+            if cmd in pipeline_cmds:
+                if hasattr(self.__class__, 'pipeline_executor'):
+                    self.__class__.pipeline_executor.execute(cmd, params)
+                else:
+                    self._json_response({"ok": False, "error": "Pipeline executor not available"}, 500)
+                    return
+            else:
+                self.commander.issue_override(cmd, params)
+            
             self._json_response({"ok": True})
         except Exception as e:
             self._json_response({"ok": False, "error": str(e)}, 500)
@@ -1693,311 +1755,310 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
 
 
 def build_html() -> str:
-    return f"""<!DOCTYPE html>
-<html>
+    return """<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>FlowStation — FC_FLOW Command Center</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE 4-ROOM COMMAND CENTER</title>
     <style>
-        body {{
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e27;
+            color: #00ff00;
             font-family: 'Courier New', monospace;
-            background-color: #000;
-            color: #0f0;
-            margin: 0;
-            padding: 20px;
-        }}
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-        }}
-        h1 {{
-            color: #0f0;
-            text-shadow: 0 0 10px #0f0;
-        }}
-        .panel {{
-            background-color: #111;
-            border: 1px solid #0f0;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }}
-        .status {{
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            margin: 2px;
-        }}
-        .healthy {{ background-color: #003300; color: #0f0; }}
-        .degraded {{ background-color: #333300; color: #ff0; }}
-        .critical {{ background-color: #330000; color: #f00; }}
-        .failed {{ background-color: #660000; color: #f00; }}
-        .locked {{ background-color: #000033; color: #00f; }}
-        .button {{
-            background-color: #003300;
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 8px 15px;
-            margin: 5px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-        }}
-        .button:hover {{ background-color: #005500; }}
-        .button.burn {{
-            background-color: #330000;
-            border-color: #f00;
-            color: #f00;
-        }}
-        .button.burn:hover {{ background-color: #550000; }}
-        .chart {{
-            height: 200px;
-            border: 1px solid #0f0;
-            margin: 10px 0;
-            position: relative;
             overflow: hidden;
-        }}
-        .bar {{
-            position: absolute;
-            bottom: 0;
-            width: 4px;
-            background-color: #0f0;
-        }}
-        .log {{
-            background-color: #001100;
-            border: 1px solid #0f0;
-            padding: 10px;
-            height: 150px;
-            overflow-y: auto;
-            font-size: 12px;
-        }}
-        .command-panel {{
-            display: flex;
-            flex-wrap: wrap;
-        }}
-        .command-button {{
-            margin: 5px;
-            flex: 1 1 150px;
-        }}
-        .room-grid {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }}
-        .room-card {{
-            border: 1px solid #0f0;
-            padding: 10px;
+            height: 100vh;
+        }
+        .header {
             text-align: center;
-        }}
-        .room-name {{
-            font-weight: bold;
-            font-size: 14px;
-        }}
-        .room-role {{
-            font-size: 11px;
+            padding: 20px;
+            background: linear-gradient(90deg, #0a0e27, #1a1e47, #0a0e27);
+            border-bottom: 2px solid #00ff00;
+        }
+        .header h1 {
+            color: #00ffff;
+            font-size: 24px;
+            letter-spacing: 4px;
+        }
+        .header .subtitle {
             color: #888;
-        }}
+            font-size: 12px;
+            font-style: italic;
+        }
+        .header .status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #ff00ff;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 120px);
+            gap: 2px;
+            padding: 2px;
+        }
+        .room {
+            border: 2px solid;
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .room-header {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid;
+        }
+        .room-content {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        #room1 { border-color: #00ffff; background: rgba(0, 255, 255, 0.05); }
+        #room1 .room-header { color: #00ffff; border-color: #00ffff; }
+        
+        #room2 { border-color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+        #room2 .room-header { color: #00ff00; border-color: #00ff00; }
+        
+        #room3 { border-color: #ffaa00; background: rgba(255, 170, 0, 0.05); }
+        #room3 .room-header { color: #ffaa00; border-color: #ffaa00; }
+        
+        #room4 { border-color: #ff00ff; background: rgba(255, 0, 255, 0.05); }
+        #room4 .room-header { color: #ff00ff; border-color: #ff00ff; }
+        
+        .cmd-line { margin: 5px 0; }
+        .cmd-line::before { content: "→ "; color: #666; }
+        
+        .terminal-input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ffaa00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 8px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .terminal-output {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #ffaa00;
+            color: #aaa;
+        }
+        .ai-msg {
+            background: rgba(255,0,255,0.1);
+            border-left: 3px solid #ff00ff;
+            padding: 8px;
+            margin: 5px 0;
+            color: #ff00ff;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: #0a0e27;
+            border-top: 2px solid #00ff00;
+        }
+        .footer button {
+            background: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .footer button:hover {
+            background: #00ff00;
+            color: #0a0e27;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0e27; }
+        ::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>⚡ FlowStation — FC_FLOW Command Center</h1>
-        <div style="color: #888; margin-bottom: 20px;">
-            Sovereign Fuel Mesh | 8CV (8-Core-Velocity) v{VERSION}
-        </div>
+    <div class="header">
+        <div class="status">● LIVE</div>
+        <h1>THE 4-ROOM COMMAND CENTER</h1>
+        <div class="subtitle">Bad MF Box architecture — applied to sovereign development</div>
+    </div>
 
-        <div id="status" class="panel">
-            <h2>8CV Core Status</h2>
-            <div id="engine-status">Loading...</div>
-            <div id="optimizer-status">Loading...</div>
-        </div>
-
-        <div id="rooms" class="panel">
-            <h2>Room Status — Sovereign Fuel Mesh</h2>
-            <div class="room-grid" id="rooms-grid">Loading...</div>
-        </div>
-
-        <div id="health" class="panel">
-            <h2>8CV Health Chart</h2>
-            <div id="health-chart" class="chart"></div>
-        </div>
-
-        <div id="alerts" class="panel">
-            <h2>Alerts <span id="alert-count">(0)</span></h2>
-            <div id="alerts-content" class="log"></div>
-        </div>
-
-        <div class="panel">
-            <h2>FC_FLOW Command Center</h2>
-            <div id="command-buttons" class="command-panel">
-                <button class="button command-button" onclick="sendCommand('GEAR_SHIFT', {{'target': 'GEAR_1_STANDBY'}})">Gear 1 Standby</button>
-                <button class="button command-button" onclick="sendCommand('GEAR_SHIFT', {{'target': 'GEAR_2_ACTIVE'}})">Gear 2 Active</button>
-                <button class="button command-button" onclick="sendCommand('GEAR_SHIFT', {{'target': 'GEAR_3_UNDISPUTED'}})">Gear 3 UnDisputed</button>
-                <button class="button command-button" onclick="sendCommand('BUZZKILL', {{'tier': 'TIER_1_SURGICAL'}})">Buzzkill T1</button>
-                <button class="button command-button" onclick="sendCommand('BUZZKILL', {{'tier': 'TIER_2_SCORCHED'}})">Buzzkill T2</button>
-                <button class="button command-button" onclick="sendCommand('BUZZKILL', {{'tier': 'TIER_3_LIVE_BURN'}})">Buzzkill T3</button>
-                <button class="button command-button burn" onclick="sendCommand('LIVE_BURN', {{}})">🔥 LIVE BURN</button>
-                <button class="button command-button" onclick="sendCommand('CLEAR_ALERTS', {{}})">Clear Alerts</button>
+    <div class="grid">
+        <!-- Room 1: Command Post -->
+        <div class="room" id="room1">
+            <div class="room-header">[ 1 ] COMMAND POST</div>
+            <div class="room-content">
+                <div class="cmd-line">Pipeline control</div>
+                <div class="cmd-line">Room management</div>
+                <div class="cmd-line">Engine status</div>
+                <div class="cmd-line">Lock / Unlock</div>
+                <div style="margin-top: 20px; color: #00ffff;">
+                    <strong>8CV Status:</strong><br>
+                    Gear: <span id="gear">GEAR_2_ACTIVE</span><br>
+                    Health: <span id="health">50/50</span><br>
+                    Cycles: <span id="cycles">0</span>
+                </div>
             </div>
         </div>
 
-        <div id="ai-feeds" class="panel">
-            <h2>AI Feeds — Undisputed Tokens</h2>
-            <div id="ai-feeds-content">Loading...</div>
+        <!-- Room 2: File Status -->
+        <div class="room" id="room2">
+            <div class="room-header">[ 2 ] FILE STATUS</div>
+            <div class="room-content">
+                <div class="cmd-line">Current file</div>
+                <div class="cmd-line">Last edits</div>
+                <div class="cmd-line">Lock status</div>
+                <div class="cmd-line">Diff view</div>
+                <div id="file-status" style="margin-top: 20px; color: #00ff00;">
+                    <strong>Room States:</strong><br>
+                    <div id="room-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room 4: AI Chat -->
+        <div class="room" id="room4">
+            <div class="room-header">[ 4 ] AI CHAT</div>
+            <div class="room-content">
+                <div class="cmd-line">AI sees your work</div>
+                <div class="cmd-line">Edits with you</div>
+                <div class="cmd-line">Live suggestions</div>
+                <div class="cmd-line">Sovereign access</div>
+                <div id="ai-feed" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- Room 3: Terminal -->
+        <div class="room" id="room3">
+            <div class="room-header">[ 3 ] TERMINAL</div>
+            <div class="room-content">
+                <div class="cmd-line">Live execution</div>
+                <div class="cmd-line">Input → tools</div>
+                <div class="cmd-line">File system</div>
+                <div class="cmd-line">Build output</div>
+                <div id="terminal-output"></div>
+                <input type="text" class="terminal-input" id="terminal-input" placeholder="$ enter command...">
+            </div>
         </div>
     </div>
 
+    <div class="footer">
+        <button onclick="sendCommand('FORGE')">FORGE</button>
+        <button onclick="sendCommand('SPLIT')">SPLIT</button>
+        <button onclick="sendCommand('SORT')">SORT</button>
+        <button onclick="sendCommand('INTEGRATE')">INTEGRATE</button>
+        <button onclick="sendCommand('BUILD')">BUILD</button>
+    </div>
+
     <script>
-        const WS_URL = 'ws://localhost:{WS_PORT}';
-        let ws = null;
-        let state = {{}};
+        let ws;
+        let wsReconnectTimer;
 
-        const ROOM_ROLES = {{
-            'room_0': 'Sovereign Fuel — Power',
-            'room_1': 'Logic Lock — Auth',
-            'room_2': 'EvoFuse — HUB',
-            'room_3': 'PassPatrol — Crossover',
-            'room_4': 'FlowControl — Bottom',
-            'room_5': 'AiZquad — Bottom'
-        }};
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8081');
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.querySelector('.status').textContent = '● LIVE';
+            };
 
-        function connectWebSocket() {{
-            try {{
-                ws = new WebSocket(WS_URL);
-                ws.onopen = function() {{
-                    console.log("FC_FLOW WebSocket connected");
-                }};
-                ws.onmessage = function(event) {{
-                    try {{
-                        const data = JSON.parse(event.data);
-                        updateUI(data);
-                    }} catch (e) {{
-                        console.error("Parse error:", e);
-                    }}
-                }};
-                ws.onclose = function() {{
-                    console.log("FC_FLOW WebSocket closed — reconnecting...");
-                    setTimeout(connectWebSocket, 1000);
-                }};
-                ws.onerror = function(error) {{
-                    console.error("WebSocket error:", error);
-                }};
-            }} catch (error) {{
-                setTimeout(connectWebSocket, 1000);
-            }}
-        }}
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('Parse error:', e);
+                }
+            };
 
-        function updateUI(data) {{
-            state = data;
-            const engine = data.engine || {{}};
-            const optimizer = data.optimizer || {{}};
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
 
-            // Engine status
-            const gearClass = engine.gear === 'GEAR_3_UNDISPUTED' ? 'critical' :
-                             engine.gear === 'GEAR_2_ACTIVE' ? 'healthy' : 'degraded';
-            const healthClass = engine.health >= 40 ? 'healthy' :
-                               engine.health >= 20 ? 'degraded' : 'critical';
+            ws.onclose = () => {
+                document.querySelector('.status').textContent = '● RECONNECTING';
+                wsReconnectTimer = setTimeout(connectWebSocket, 2000);
+            };
+        }
 
-            document.getElementById('engine-status').innerHTML = `
-                Gear: <span class="status ${{gearClass}}">${{engine.gear || 'Unknown'}}</span>
-                Health: <span class="status ${{healthClass}}">${{engine.health || 0}}/50</span>
-                Cycles: ${{engine.cycles || 0}}
-                ${{engine.in_grace ? '<span class="status degraded">GRACE</span>' : ''}}
-            `;
+        function handleWebSocketMessage(data) {
+            if (data.event === 'CYCLE') {
+                document.getElementById('gear').textContent = data.payload.gear;
+                document.getElementById('health').textContent = `${data.payload.health}/50`;
+                document.getElementById('cycles').textContent = data.payload.cycle;
+            } else if (data.event === 'ROOM_UPDATE') {
+                updateRoomList(data.payload);
+            } else if (data.event === 'AI_MESSAGE') {
+                addAIMessage(data.payload);
+            } else if (data.event === 'TERMINAL_OUTPUT') {
+                addTerminalOutput(data.payload);
+            }
+        }
 
-            // Optimizer status
-            const optClass = optimizer.mode === 'SURGE' ? 'critical' :
-                            optimizer.mode === 'THROTTLE' ? 'degraded' : 'healthy';
-            document.getElementById('optimizer-status').innerHTML = `
-                8CV Mode: <span class="status ${{optClass}}">${{optimizer.mode || 'UNKNOWN'}}</span>
-                Rate: ${{optimizer.token_rate || 0}} tok/s
-                Conns: ${{optimizer.connections || 0}}
-                Pressure: ${{optimizer.pressure || 0}}
-            `;
+        function updateRoomList(rooms) {
+            const roomList = document.getElementById('room-list');
+            roomList.innerHTML = '';
+            for (const [name, status] of Object.entries(rooms)) {
+                const color = status === 'HEALTHY' ? '#00ff00' : '#ff0000';
+                roomList.innerHTML += `<div style="color: ${color};">${name}: ${status}</div>`;
+            }
+        }
 
-            // Room grid
-            const rooms = data.rooms || {{}};
-            let roomsHtml = '';
-            for (const [room_id, room] of Object.entries(rooms)) {{
-                const statusClass = room.status === 'LOCKED' ? 'locked' :
-                                   room.status === 'FAILED' ? 'failed' :
-                                   room.status === 'DEGRADED' ? 'degraded' : 'healthy';
-                roomsHtml += `
-                    <div class="room-card">
-                        <div class="room-name">${{room.label || room_id}}</div>
-                        <div class="room-role">${{ROOM_ROLES[room_id] || ''}}</div>
-                        <span class="status ${{statusClass}}">${{room.status || 'UNKNOWN'}}</span>
-                    </div>
-                `;
-            }}
-            document.getElementById('rooms-grid').innerHTML = roomsHtml;
+        function addAIMessage(msg) {
+            const feed = document.getElementById('ai-feed');
+            const div = document.createElement('div');
+            div.className = 'ai-msg';
+            div.textContent = msg;
+            feed.appendChild(div);
+            feed.scrollTop = feed.scrollHeight;
+        }
 
-            // Health chart
-            const chart = data.chart || [];
-            const chartEl = document.getElementById('health-chart');
-            chartEl.innerHTML = '';
-            if (chart.length > 0) {{
-                const maxScore = Math.max(...chart.map(d => d.score), 50);
-                chart.forEach((d, i) => {{
-                    const bar = document.createElement('div');
-                    bar.className = 'bar';
-                    bar.style.left = (i * 6) + 'px';
-                    bar.style.height = ((d.score / maxScore) * 180) + 'px';
-                    bar.style.backgroundColor = d.score >= 40 ? '#0f0' : d.score >= 20 ? '#ff0' : '#f00';
-                    bar.title = `Cycle ${{d.score}} — Top: ${{d.top}} Bottom: ${{d.bottom}}`;
-                    chartEl.appendChild(bar);
-                }});
-            }}
+        function addTerminalOutput(output) {
+            const terminal = document.getElementById('terminal-output');
+            const div = document.createElement('div');
+            div.className = 'terminal-output';
+            div.textContent = output;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
 
-            // Alerts
-            const alerts = data.alerts || [];
-            document.getElementById('alert-count').textContent = `(${{alerts.length}})`;
-            const alertsEl = document.getElementById('alerts-content');
-            alertsEl.innerHTML = '';
-            alerts.forEach(alert => {{
-                const line = document.createElement('div');
-                line.innerHTML = `[${{alert.severity}}] ${{alert.event}}: ${{alert.detail}}`;
-                line.style.color = alert.severity === 'CRITICAL' ? '#f00' :
-                                   alert.severity === 'WARNING' ? '#ff0' : '#0f0';
-                alertsEl.appendChild(line);
-            }});
-            alertsEl.scrollTop = alertsEl.scrollHeight;
-
-            // AI feeds
-            const feeds = data.feeds || {{}};
-            let feedsHtml = '';
-            for (const [ai, events] of Object.entries(feeds)) {{
-                feedsHtml += `<h3>${{ai}}</h3><div class="log">`;
-                events.forEach(event => {{
-                    feedsHtml += `<div>[${{event.ts}}] ${{event.event}}</div>`;
-                }});
-                feedsHtml += `</div>`;
-            }}
-            document.getElementById('ai-feeds-content').innerHTML = feedsHtml;
-        }}
-
-        function sendCommand(command, params) {{
-            fetch('/command', {{
+        function sendCommand(cmd) {
+            fetch('/command', {
                 method: 'POST',
-                headers: {{'Content-Type': 'application/json'}},
-                body: JSON.stringify({{command, params}})
-            }})
-            .then(r => r.json())
-            .then(data => {{
-                if (data.ok) console.log('FC_FLOW command sent:', command);
-                else console.error('Command failed:', data.error);
-            }})
-            .catch(err => console.error('Network error:', err));
-        }}
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd, params: {} })
+            }).then(r => r.json()).then(data => {
+                addTerminalOutput(`> ${cmd}: ${JSON.stringify(data)}`);
+            });
+        }
 
-        window.addEventListener('load', connectWebSocket);
+        document.getElementById('terminal-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value;
+                addTerminalOutput(`$ ${cmd}`);
+                // Send to backend
+                e.target.value = '';
+            }
+        });
+
+        connectWebSocket();
+
+        // Fetch initial state
+        fetch('/state').then(r => r.json()).then(data => {
+            if (data.turf && data.turf.rooms) {
+                updateRoomList(data.turf.rooms);
+            }
+        });
     </script>
 </body>
-</html>"""
-
-
-# ══════════════════════════════════════════════════════════
-# ENTRY POINT
-# ══════════════════════════════════════════════════════════
+</html>
+"""
 
 def main():
     # Initialize FC_FLOW components
@@ -2015,12 +2076,18 @@ def main():
     ws_server = WSServer(web_state, WEB_HOST, WS_PORT)
     ws_server.set_optimizer(optimizer)
     ws_server.start()
+    print(f'   WebSocket thread started')
+
+    # Initialize pipeline executor
+    pipeline_executor = PipelineExecutor(ws_server)
 
     # Start HTTP server
     MeshHTTPHandler.web_state = web_state
     MeshHTTPHandler.commander = commander
     MeshHTTPHandler.engine = engine
     MeshHTTPHandler.feed = token_feed
+    MeshHTTPHandler.ws_server = ws_server
+    MeshHTTPHandler.pipeline_executor = pipeline_executor
 
     http_server = HTTPServer((WEB_HOST, WEB_PORT), MeshHTTPHandler)
 
@@ -2045,3 +2112,357 @@ def main():
 
 if __name__ == "__main__":
     main()
+    def do_POST(self):
+        if self.path == "/api/ai-chat":
+            self._handle_ai_chat()
+            return
+        if self.path == "/api/ai-wipe-memory":
+            self._handle_ai_wipe_memory()
+            return
+        if self.path == "/api/ai-logout":
+            self._handle_ai_logout()
+            return
+        """Handle POST requests for file operations"""
+        if self.path == '/api/save-to-room':
+            self._handle_save_to_room()
+        else:
+            self.send_error(404, "Endpoint not found")
+    
+    def _handle_save_to_room(self):
+        """Save uploaded file to room directory"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            room = data.get('room', 'room-2')
+            filename = data.get('filename', 'untitled.py')
+            content = data.get('content', '')
+            
+            # Sanitize room and filename
+            room = room.replace('..', '').replace('/', '')
+            filename = filename.replace('..', '').replace('/', '')
+            
+            # Create room directory if it doesn't exist
+            room_path = Path(f'forge/active/{room}')
+            room_path.mkdir(parents=True, exist_ok=True)
+            
+            # Save file
+            file_path = room_path / filename
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            logger.info(f"💾 Saved {filename} to {room}")
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'success',
+                'message': f'Saved {filename} to {room}',
+                'path': str(file_path)
+            }
+            self.wfile.write(json.dumps(response).encode())
+            
+        except Exception as e:
+            logger.error(f"Save error: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'error',
+                'message': str(e)
+            }
+            self.wfile.write(json.dumps(response).encode())
+    
+    def _handle_load_from_room(self):
+        """Load files from room directory"""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            room = query.get('room', ['room-2'])[0]
+            
+            # Sanitize room
+            room = room.replace('..', '').replace('/', '')
+            
+            room_path = Path(f'forge/active/{room}')
+            files = []
+            
+            if room_path.exists() and room_path.is_dir():
+                for file_path in room_path.glob('*.py'):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    files.append({
+                        'name': file_path.name,
+                        'content': content,
+                        'timestamp': datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
+                    })
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'success',
+                'files': files,
+                'room': room
+            }
+            self.wfile.write(json.dumps(response).encode())
+            
+        except Exception as e:
+            logger.error(f"Load error: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'error',
+                'message': str(e)
+            }
+            self.wfile.write(json.dumps(response).encode())
+
+    def do_POST(self):
+        if self.path == "/api/ai-chat":
+            self._handle_ai_chat()
+            return
+        if self.path == "/api/ai-wipe-memory":
+            self._handle_ai_wipe_memory()
+            return
+        if self.path == "/api/ai-logout":
+            self._handle_ai_logout()
+            return
+        """Handle POST requests for file operations"""
+        if self.path == '/api/save-to-room':
+            self._handle_save_to_room()
+        else:
+            self.send_error(404, "Endpoint not found")
+    
+    def _handle_save_to_room(self):
+        """Save uploaded file to room directory"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            room = data.get('room', 'room-2')
+            filename = data.get('filename', 'untitled.py')
+            content = data.get('content', '')
+            
+            # Sanitize room and filename
+            room = room.replace('..', '').replace('/', '')
+            filename = filename.replace('..', '').replace('/', '')
+            
+            # Create room directory if it doesn't exist
+            room_path = Path(f'forge/active/{room}')
+            room_path.mkdir(parents=True, exist_ok=True)
+            
+            # Save file
+            file_path = room_path / filename
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            logger.info(f"💾 Saved {filename} to {room}")
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'success',
+                'message': f'Saved {filename} to {room}',
+                'path': str(file_path)
+            }
+            self.wfile.write(json.dumps(response).encode())
+            
+        except Exception as e:
+            logger.error(f"Save error: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'error',
+                'message': str(e)
+            }
+            self.wfile.write(json.dumps(response).encode())
+    
+    def _handle_load_from_room(self):
+        """Load files from room directory"""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            room = query.get('room', ['room-2'])[0]
+            
+            # Sanitize room
+            room = room.replace('..', '').replace('/', '')
+            
+            room_path = Path(f'forge/active/{room}')
+            files = []
+            
+            if room_path.exists() and room_path.is_dir():
+                for file_path in room_path.glob('*.py'):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    files.append({
+                        'name': file_path.name,
+                        'content': content,
+                        'timestamp': datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
+                    })
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'success',
+                'files': files,
+                'room': room
+            }
+            self.wfile.write(json.dumps(response).encode())
+            
+        except Exception as e:
+            logger.error(f"Load error: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'error',
+                'message': str(e)
+            }
+            self.wfile.write(json.dumps(response).encode())
+
+    def _handle_ai_chat(self):
+        """Handle AI chat messages"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            message = data.get('message', '')
+            
+            # Simple AI response logic (can be enhanced with real AI later)
+            response = self._generate_ai_response(message)
+            
+            # Add note to memory
+            from ai_memory import ai_memory
+            ai_memory.add_note(f"User asked: {message}", "conversation", persistent=False)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            result = {
+                'status': 'success',
+                'response': response
+            }
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            logger.error(f"AI chat error: {e}")
+            self._send_json_error(str(e))
+    
+    def _generate_ai_response(self, message):
+        """Generate AI response (basic logic, can be enhanced)"""
+        message_lower = message.lower()
+        
+        if 'help' in message_lower or 'what can you do' in message_lower:
+            return "I'm your AI partner. I watch your code, suggest improvements, and keep notes. I cannot edit without your approval. Ask me about files, locks, or your project structure."
+        
+        elif 'lock' in message_lower:
+            return "Logic locks protect your code. When locked, I cannot modify it. Only you can unlock modules."
+        
+        elif 'note' in message_lower:
+            return "I keep two types of memory: persistent notes (survive logout) and working memory (wiped on logout). Use 'View Notes' to see them."
+        
+        elif 'file' in message_lower or 'room' in message_lower:
+            return "I'm observing your file operations. If I notice potential issues, I'll suggest improvements. You decide whether to apply them."
+        
+        else:
+            return f"Understood. I'll keep that in mind while assisting you."
+    
+    def _handle_ai_notes(self):
+        """Get AI notes"""
+        try:
+            from ai_memory import ai_memory
+            notes = ai_memory.get_notes()
+            context = ai_memory.get_context_summary()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            result = {
+                'status': 'success',
+                'notes': notes,
+                'context': context
+            }
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            logger.error(f"AI notes error: {e}")
+            self._send_json_error(str(e))
+    
+    def _handle_ai_wipe_memory(self):
+        """Wipe AI working memory"""
+        try:
+            from ai_memory import ai_memory
+            count = ai_memory.wipe_working_memory()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            result = {
+                'status': 'success',
+                'count': count
+            }
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            logger.error(f"AI wipe error: {e}")
+            self._send_json_error(str(e))
+    
+    def _handle_ai_logout(self):
+        """AI logout - wipe working memory, save persistent notes"""
+        try:
+            from ai_memory import ai_memory
+            count = ai_memory.wipe_working_memory()
+            
+            logger.info("🚪 AI logged out, working memory wiped")
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            result = {
+                'status': 'success',
+                'message': f'AI logged out. {count} working memory entries wiped.',
+                'persistent_notes': len(ai_memory.persistent_notes)
+            }
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            logger.error(f"AI logout error: {e}")
+            self._send_json_error(str(e))
+    
+    def _handle_ai_locks(self):
+        """Get locked modules"""
+        try:
+            locks_dir = Path('forge/signatures')
+            locks = []
+            
+            if locks_dir.exists():
+                locks = [f.stem for f in locks_dir.glob('*.sig')]
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            result = {
+                'status': 'success',
+                'locks': locks
+            }
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            logger.error(f"AI locks error: {e}")
+            self._send_json_error(str(e))
+    
+    def _send_json_error(self, message):
+        """Send JSON error response"""
+        self.send_response(500)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        response = {
+            'status': 'error',
+            'message': message
+        }
+        self.wfile.write(json.dumps(response).encode())

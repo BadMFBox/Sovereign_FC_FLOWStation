@@ -1,0 +1,194 @@
+<div class="room-header" style="background: linear-gradient(90deg, #00bcd4, #0097a7); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 1 ] COMMAND CENTER
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; gap: 8px; padding: 6px; font-size: 11px;">
+    
+    <!-- Room Selection -->
+    <div style="border: 1px solid #00bcd4; padding: 6px; background: rgba(0,188,212,0.05);">
+        <div style="color: #00bcd4; font-weight: bold; margin-bottom: 4px;">SELECT ROOM:</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+            <button class="room-select-btn" onclick="selectRoom('room-0')">Room 0<br><span style="font-size:9px">SovereignFuel</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-1')">Room 1<br><span style="font-size:9px">LogicLock</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-2')">Room 2<br><span style="font-size:9px">EvoFuse</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-3')">Room 3<br><span style="font-size:9px">PassPatrol</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-4')">Room 4<br><span style="font-size:9px">FlowControl</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-5')">Room 5<br><span style="font-size:9px">AiZquad</span></button>
+        </div>
+        <div style="margin-top: 4px; color: #00bcd4; font-size: 10px;">
+            Selected: <span id="selected-room" style="color: #fff; font-weight: bold;">none</span>
+        </div>
+    </div>
+
+    <!-- Pipeline Phase Selection -->
+    <div style="border: 1px solid #4caf50; padding: 6px; background: rgba(76,175,80,0.05);">
+        <div style="color: #4caf50; font-weight: bold; margin-bottom: 4px;">SELECT PHASE:</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
+            <button class="phase-btn" onclick="selectPhase('FORGE')">🔥 FORGE</button>
+            <button class="phase-btn" onclick="selectPhase('SPLIT')">✂️ SPLIT</button>
+            <button class="phase-btn" onclick="selectPhase('SORT')">🗂 SORT</button>
+            <button class="phase-btn" onclick="selectPhase('INTEGRATE')">🔌 INTEGRATE</button>
+        </div>
+        <div style="margin-top: 4px; color: #4caf50; font-size: 10px;">
+            Phase: <span id="selected-phase" style="color: #fff; font-weight: bold;">none</span>
+        </div>
+    </div>
+
+    <!-- Execute Button -->
+    <button id="execute-btn" 
+            onclick="executeSelection()" 
+            disabled
+            style="background: rgba(255,152,0,0.2); border: 2px solid #ff9800; color: #ff9800; padding: 10px; font-weight: bold; cursor: not-allowed; font-size: 12px;">
+        ⚡ EXECUTE
+    </button>
+
+    <!-- 8CV Engine Status -->
+    <div style="border: 1px solid #e91e63; padding: 6px; background: rgba(233,30,99,0.05);">
+        <div style="color: #e91e63; font-weight: bold; margin-bottom: 4px;">8CV ENGINE:</div>
+        <div style="color: #666; font-size: 10px;">
+            <div>Gear: <span id="cmd-gear" style="color: #e91e63;">GEAR_2</span></div>
+            <div>Health: <span id="cmd-health" style="color: #e91e63;">50/50</span></div>
+            <div>Cycles: <span id="cmd-cycles" style="color: #e91e63;">0</span></div>
+        </div>
+    </div>
+
+    <!-- Room States -->
+    <div style="flex: 1; border: 1px solid #666; padding: 6px; overflow-y: auto; background: rgba(0,0,0,0.3);">
+        <div style="color: #00bcd4; font-weight: bold; margin-bottom: 4px;">ROOM STATES:</div>
+        <div id="room-states" style="color: #666; font-size: 10px;">
+            <div>room-0: SovereignFuel ● Core</div>
+            <div>room-1: LogicLock ● Auth</div>
+            <div>room-2: EvoFuse ● HUB AI</div>
+            <div>room-3: PassPatrol ● Crossover</div>
+            <div>room-4: FlowControl ● Loop Giver</div>
+            <div>room-5: AiZquad ● Loop Giver</div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.room-select-btn, .phase-btn {
+    background: rgba(0,188,212,0.1);
+    border: 1px solid #00bcd4;
+    color: #00bcd4;
+    padding: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.room-select-btn:hover, .phase-btn:hover {
+    background: rgba(0,188,212,0.3);
+    transform: scale(1.05);
+}
+.room-select-btn.selected {
+    background: #00bcd4;
+    color: #000;
+}
+.phase-btn.selected {
+    background: #4caf50;
+    color: #000;
+    border-color: #4caf50;
+}
+#execute-btn:not([disabled]) {
+    background: #ff9800;
+    color: #000;
+    cursor: pointer;
+}
+#execute-btn:not([disabled]):hover {
+    background: #ffa726;
+    transform: scale(1.02);
+}
+</style>
+
+<script>
+let selectedRoom = null;
+let selectedPhase = null;
+
+function selectRoom(room) {
+    selectedRoom = room;
+    const roomNames = {
+        'room-0': 'SovereignFuel',
+        'room-1': 'LogicLock',
+        'room-2': 'EvoFuse',
+        'room-3': 'PassPatrol',
+        'room-4': 'FlowControl',
+        'room-5': 'AiZquad'
+    };
+    document.getElementById('selected-room').textContent = roomNames[room];
+    
+    // Update button states
+    document.querySelectorAll('.room-select-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    event.target.classList.add('selected');
+    
+    // Notify Room 2 to update files
+    if (typeof connector !== 'undefined') {
+        connector.emit('room_selected', { room: room });
+    }
+    
+    checkExecuteReady();
+}
+
+function selectPhase(phase) {
+    selectedPhase = phase;
+    document.getElementById('selected-phase').textContent = phase;
+    
+    // Update button states
+    document.querySelectorAll('.phase-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    event.target.classList.add('selected');
+    
+    checkExecuteReady();
+}
+
+function checkExecuteReady() {
+    const executeBtn = document.getElementById('execute-btn');
+    if (selectedRoom && selectedPhase) {
+        executeBtn.disabled = false;
+        executeBtn.style.cursor = 'pointer';
+    } else {
+        executeBtn.disabled = true;
+        executeBtn.style.cursor = 'not-allowed';
+    }
+}
+
+function executeSelection() {
+    if (!selectedRoom || !selectedPhase) return;
+    
+    const cmd = `make ${selectedPhase.toLowerCase()} ROOM=${selectedRoom}`;
+    
+    // Send to Room 3 terminal
+    if (typeof window.sendToTerminal === 'function') {
+        window.sendToTerminal(cmd);
+    }
+    
+    // Also send via WebSocket if available
+    if (typeof sendCommand === 'function') {
+        sendCommand(selectedPhase, { room: selectedRoom });
+    }
+}
+
+// Update from FlowStation WebSocket
+if (typeof connector !== 'undefined') {
+    connector.on('cycle', (payload) => {
+        document.getElementById('cmd-gear').textContent = payload.gear || 'GEAR_2';
+        document.getElementById('cmd-health').textContent = (payload.health || 50) + '/50';
+        document.getElementById('cmd-cycles').textContent = payload.cycles || 0;
+    });
+    
+    connector.on('room_update', (payload) => {
+        const statesDiv = document.getElementById('room-states');
+        if (statesDiv && payload.rooms) {
+            statesDiv.innerHTML = '';
+            Object.entries(payload.rooms).forEach(([room, state]) => {
+                const div = document.createElement('div');
+                div.textContent = `${room}: ${state}`;
+                statesDiv.appendChild(div);
+            });
+        }
+    });
+}
+</script>

@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE 4-ROOM COMMAND CENTER</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e27;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(90deg, #0a0e27, #1a1e47, #0a0e27);
+            border-bottom: 2px solid #00ff00;
+        }
+        .header h1 {
+            color: #00ffff;
+            font-size: 22px;
+            letter-spacing: 4px;
+        }
+        .header .subtitle {
+            color: #888;
+            font-size: 11px;
+            font-style: italic;
+        }
+        .header .status {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #ff00ff;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 150px);
+            gap: 2px;
+            padding: 2px;
+        }
+        .room {
+            border: 2px solid;
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .room-header {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid;
+        }
+        .room-content {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        #room1 { border-color: #00ffff; background: rgba(0, 255, 255, 0.05); }
+        #room1 .room-header { color: #00ffff; border-color: #00ffff; }
+        
+        #room2 { border-color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+        #room2 .room-header { color: #00ff00; border-color: #00ff00; }
+        
+        #room3 { border-color: #ffaa00; background: rgba(255, 170, 0, 0.05); }
+        
+        #room3 .room-header { color: #ffaa00; border-color: #ffaa00; }
+        
+        #room4 { border-color: #ff00ff; background: rgba(255, 0, 255, 0.05); }
+        #room4 .room-header { color: #ff00ff; border-color: #ff00ff; }
+        
+        .cmd-line { margin: 5px 0; }
+        .cmd-line::before { content: "→ "; color: #666; }
+        
+        .terminal-input, .ai-input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 8px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .terminal-input { border-color: #ffaa00; }
+        .ai-input { border-color: #ff00ff; color: #ff00ff; }
+        
+        .terminal-output {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            margin: 5px 0;
+            border-left: 3px solid #ffaa00;
+            color: #aaa;
+            font-size: 12px;
+        }
+        .ai-msg {
+            background: rgba(255,0,255,0.1);
+            border-left: 3px solid #ff00ff;
+            padding: 8px;
+            margin: 5px 0;
+            color: #ff00ff;
+            font-size: 12px;
+        }
+        .room-btn {
+            background: rgba(0,255,255,0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 6px 12px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 3px;
+            transition: all 0.3s;
+        }
+        .room-btn:hover {
+            background: #00ffff;
+            color: #0a0e27;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: #0a0e27;
+            border-top: 2px solid #00ff00;
+        }
+        .footer button {
+            background: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            flex: 1;
+            margin: 0 3px;
+        }
+        .footer button:hover {
+            background: #00ff00;
+            color: #0a0e27;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0e27; }
+        ::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="status" id="ws-status">● CONNECTING</div>
+        <h1>THE 4-ROOM COMMAND CENTER</h1>
+        <div class="subtitle">Bad MF Box architecture — applied to sovereign development</div>
+    </div>
+
+    <div class="grid">
+        <div class="room" id="room1"><div class="room-header" style="background: linear-gradient(90deg, #00bcd4, #0097a7); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 1 ] COMMAND CENTER
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; gap: 8px; padding: 6px; font-size: 11px;">
+    
+    <!-- Room Selection -->
+    <div style="border: 1px solid #00bcd4; padding: 6px; background: rgba(0,188,212,0.05);">
+        <div style="color: #00bcd4; font-weight: bold; margin-bottom: 4px;">SELECT ROOM:</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+            <button class="room-select-btn" onclick="selectRoom('room-0')">Room 0<br><span style="font-size:9px">SovereignFuel</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-1')">Room 1<br><span style="font-size:9px">LogicLock</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-2')">Room 2<br><span style="font-size:9px">EvoFuse</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-3')">Room 3<br><span style="font-size:9px">PassPatrol</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-4')">Room 4<br><span style="font-size:9px">FlowControl</span></button>
+            <button class="room-select-btn" onclick="selectRoom('room-5')">Room 5<br><span style="font-size:9px">AiZquad</span></button>
+        </div>
+        <div style="margin-top: 4px; color: #00bcd4; font-size: 10px;">
+            Selected: <span id="selected-room" style="color: #fff; font-weight: bold;">none</span>
+        </div>
+    </div>
+
+    <!-- Pipeline Phase Selection -->
+    <div style="border: 1px solid #4caf50; padding: 6px; background: rgba(76,175,80,0.05);">
+        <div style="color: #4caf50; font-weight: bold; margin-bottom: 4px;">SELECT PHASE:</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
+            <button class="phase-btn" onclick="selectPhase('FORGE')">🔥 FORGE</button>
+            <button class="phase-btn" onclick="selectPhase('SPLIT')">✂️ SPLIT</button>
+            <button class="phase-btn" onclick="selectPhase('SORT')">🗂 SORT</button>
+            <button class="phase-btn" onclick="selectPhase('INTEGRATE')">🔌 INTEGRATE</button>
+        </div>
+        <div style="margin-top: 4px; color: #4caf50; font-size: 10px;">
+            Phase: <span id="selected-phase" style="color: #fff; font-weight: bold;">none</span>
+        </div>
+    </div>
+
+    <!-- Execute Button -->
+    <button id="execute-btn" 
+            onclick="executeSelection()" 
+            disabled
+            style="background: rgba(255,152,0,0.2); border: 2px solid #ff9800; color: #ff9800; padding: 10px; font-weight: bold; cursor: not-allowed; font-size: 12px;">
+        ⚡ EXECUTE
+    </button>
+
+    <!-- 8CV Engine Status -->
+    <div style="border: 1px solid #e91e63; padding: 6px; background: rgba(233,30,99,0.05);">
+        <div style="color: #e91e63; font-weight: bold; margin-bottom: 4px;">8CV ENGINE:</div>
+        <div style="color: #666; font-size: 10px;">
+            <div>Gear: <span id="cmd-gear" style="color: #e91e63;">GEAR_2</span></div>
+            <div>Health: <span id="cmd-health" style="color: #e91e63;">50/50</span></div>
+            <div>Cycles: <span id="cmd-cycles" style="color: #e91e63;">0</span></div>
+        </div>
+    </div>
+
+    <!-- Room States -->
+    <div style="flex: 1; border: 1px solid #666; padding: 6px; overflow-y: auto; background: rgba(0,0,0,0.3);">
+        <div style="color: #00bcd4; font-weight: bold; margin-bottom: 4px;">ROOM STATES:</div>
+        <div id="room-states" style="color: #666; font-size: 10px;">
+            <div>room-0: SovereignFuel ● Core</div>
+            <div>room-1: LogicLock ● Auth</div>
+            <div>room-2: EvoFuse ● HUB AI</div>
+            <div>room-3: PassPatrol ● Crossover</div>
+            <div>room-4: FlowControl ● Loop Giver</div>
+            <div>room-5: AiZquad ● Loop Giver</div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.room-select-btn, .phase-btn {
+    background: rgba(0,188,212,0.1);
+    border: 1px solid #00bcd4;
+    color: #00bcd4;
+    padding: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.room-select-btn:hover, .phase-btn:hover {
+    background: rgba(0,188,212,0.3);
+    transform: scale(1.05);
+}
+.room-select-btn.selected {
+    background: #00bcd4;
+    color: #000;
+}
+.phase-btn.selected {
+    background: #4caf50;
+    color: #000;
+    border-color: #4caf50;
+}
+#execute-btn:not([disabled]) {
+    background: #ff9800;
+    color: #000;
+    cursor: pointer;
+}
+#execute-btn:not([disabled]):hover {
+    background: #ffa726;
+    transform: scale(1.02);
+}
+</style>
+
+<script>
+let selectedRoom = null;
+let selectedPhase = null;
+
+function selectRoom(room) {
+    selectedRoom = room;
+    const roomNames = {
+        'room-0': 'SovereignFuel',
+        'room-1': 'LogicLock',
+        'room-2': 'EvoFuse',
+        'room-3': 'PassPatrol',
+        'room-4': 'FlowControl',
+        'room-5': 'AiZquad'
+    };
+    document.getElementById('selected-room').textContent = roomNames[room];
+    
+    // Update button states
+    document.querySelectorAll('.room-select-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    event.target.classList.add('selected');
+    
+    // Notify Room 2 to update files
+    if (typeof connector !== 'undefined') {
+        connector.emit('room_selected', { room: room });
+    }
+    
+    checkExecuteReady();
+}
+
+function selectPhase(phase) {
+    selectedPhase = phase;
+    document.getElementById('selected-phase').textContent = phase;
+    
+    // Update button states
+    document.querySelectorAll('.phase-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    event.target.classList.add('selected');
+    
+    checkExecuteReady();
+}
+
+function checkExecuteReady() {
+    const executeBtn = document.getElementById('execute-btn');
+    if (selectedRoom && selectedPhase) {
+        executeBtn.disabled = false;
+        executeBtn.style.cursor = 'pointer';
+    } else {
+        executeBtn.disabled = true;
+        executeBtn.style.cursor = 'not-allowed';
+    }
+}
+
+function executeSelection() {
+    if (!selectedRoom || !selectedPhase) return;
+    
+    const cmd = `make ${selectedPhase.toLowerCase()} ROOM=${selectedRoom}`;
+    
+    // Send to Room 3 terminal
+    if (typeof window.sendToTerminal === 'function') {
+        window.sendToTerminal(cmd);
+    }
+    
+    // Also send via WebSocket if available
+    if (typeof sendCommand === 'function') {
+        sendCommand(selectedPhase, { room: selectedRoom });
+    }
+}
+
+// Update from FlowStation WebSocket
+if (typeof connector !== 'undefined') {
+    connector.on('cycle', (payload) => {
+        document.getElementById('cmd-gear').textContent = payload.gear || 'GEAR_2';
+        document.getElementById('cmd-health').textContent = (payload.health || 50) + '/50';
+        document.getElementById('cmd-cycles').textContent = payload.cycles || 0;
+    });
+    
+    connector.on('room_update', (payload) => {
+        const statesDiv = document.getElementById('room-states');
+        if (statesDiv && payload.rooms) {
+            statesDiv.innerHTML = '';
+            Object.entries(payload.rooms).forEach(([room, state]) => {
+                const div = document.createElement('div');
+                div.textContent = `${room}: ${state}`;
+                statesDiv.appendChild(div);
+            });
+        }
+    });
+}
+</script>
+</div>
+        <div class="room" id="room2"><div class="room-header" style="background: linear-gradient(90deg, #4caf50, #66bb6a); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 2 ] FILE CENTER
+    <span id="room2-mode-label" style="float: right; font-size: 9px; color: #333;">MIXPLORER MODE</span>
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; height: 100%; padding: 6px; gap: 6px;">
+    
+    <!-- Mode Toggle + Actions Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px; background: rgba(76,175,80,0.1); border: 1px solid #4caf50;">
+        <div style="display: flex; gap: 4px;">
+            <button id="mode-files" class="mode-btn active" onclick="switchMode('files')">📁 Files</button>
+            <button id="mode-code" class="mode-btn" onclick="switchMode('code')"></> Code</button>
+        </div>
+        
+        <div style="display: flex; gap: 4px;">
+            <button class="action-btn" onclick="uploadFile()" title="Upload from device">📤</button>
+            <button class="action-btn" onclick="loadFromRoom()" title="Load from FlowStation">📥</button>
+            <button class="action-btn" onclick="refreshFiles()" title="Refresh">🔄</button>
+            <input type="file" id="file-upload" style="display: none;" onchange="handleFileUpload(event)" multiple>
+        </div>
+    </div>
+
+    <!-- Current Path Breadcrumb -->
+    <div id="breadcrumb" style="font-size: 10px; color: #4caf50; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+        <span onclick="navigateTo('forge')">forge</span> / 
+        <span onclick="navigateTo('forge/active')">active</span> / 
+        <span id="current-room" style="color: #fff; font-weight: bold;">room-2</span>
+    </div>
+
+    <!-- FILE SYSTEM VIEW (MiXplorer Mode) -->
+    <div id="file-system-view" style="flex: 1; overflow-y: auto; background: #000; border: 2px solid #4caf50; padding: 6px;">
+        <div class="file-grid" id="file-grid">
+            <div class="loading" style="color: #666; text-align: center; padding: 20px;">No files loaded. Click 📤 to upload or 📥 to load from room.</div>
+        </div>
+    </div>
+
+    <!-- CODE VIEW (Code Display Mode) -->
+    <div id="code-view" style="flex: 1; overflow-y: auto; background: #000; border: 2px solid #4caf50; padding: 8px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #4caf50;">
+            <div style="color: #4caf50; font-size: 11px; font-weight: bold;" id="code-filename">No file selected</div>
+            <div style="font-size: 9px; color: #666;">
+                <span id="code-lines">0 lines</span> | 
+                <span id="code-size">0 KB</span> | 
+                <span id="code-status">🔓 Unlocked</span>
+            </div>
+        </div>
+        <pre id="code-content" style="margin: 0; font-family: 'Courier New', monospace; font-size: 11px; color: #aaa; line-height: 1.4; white-space: pre-wrap;"><code>Select a file to view its contents</code></pre>
+    </div>
+
+    <!-- File Info Footer + Save Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+        <div style="display: flex; gap: 8px; color: #666;">
+            <span id="file-count">0 files</span>
+            <span id="selected-file">No selection</span>
+        </div>
+        <button id="save-to-room-btn" 
+                onclick="saveToRoom()" 
+                disabled
+                style="background: rgba(255,152,0,0.2); border: 2px solid #ff9800; color: #ff9800; padding: 6px 12px; font-weight: bold; cursor: not-allowed; font-size: 10px;">
+            💾 SAVE TO ROOM
+        </button>
+    </div>
+
+</div>
+
+<style>
+.mode-btn {
+    background: rgba(76,175,80,0.1);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    padding: 4px 12px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mode-btn:hover {
+    background: rgba(76,175,80,0.3);
+}
+.mode-btn.active {
+    background: #4caf50;
+    color: #000;
+    font-weight: bold;
+}
+
+.action-btn {
+    background: rgba(76,175,80,0.1);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.action-btn:hover {
+    background: #4caf50;
+    color: #000;
+}
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+}
+
+.file-item {
+    background: rgba(76,175,80,0.05);
+    border: 1px solid #333;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+}
+.file-item:hover {
+    background: rgba(76,175,80,0.2);
+    border-color: #4caf50;
+}
+.file-item.selected {
+    background: rgba(76,175,80,0.3);
+    border-color: #4caf50;
+}
+.file-item.saved {
+    border-color: #ff9800;
+}
+.file-item.saved::after {
+    content: '💾';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+}
+
+.file-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.file-name {
+    font-size: 9px;
+    color: #aaa;
+    word-break: break-word;
+}
+.file-meta {
+    font-size: 8px;
+    color: #666;
+    margin-top: 2px;
+}
+
+#save-to-room-btn:not([disabled]) {
+    background: #ff9800;
+    color: #000;
+    cursor: pointer;
+}
+#save-to-room-btn:not([disabled]):hover {
+    background: #ffa726;
+    transform: scale(1.05);
+}
+</style>
+
+<script>
+// In-memory file storage
+let uploadedFiles = [];
+let currentMode = 'files';
+let currentRoom = 'room-2';
+let selectedFile = null;
+
+function switchMode(mode) {
+    currentMode = mode;
+    
+    document.getElementById('mode-files').classList.toggle('active', mode === 'files');
+    document.getElementById('mode-code').classList.toggle('active', mode === 'code');
+    
+    document.getElementById('file-system-view').style.display = mode === 'files' ? 'block' : 'none';
+    document.getElementById('code-view').style.display = mode === 'code' ? 'block' : 'none';
+    
+    const header = document.getElementById('room2-mode-label');
+    header.textContent = mode === 'files' ? 'MIXPLORER MODE' : 'CODE VIEW MODE';
+    
+    if (mode === 'code' && selectedFile) {
+        loadCodeView(selectedFile);
+    }
+}
+
+function uploadFile() {
+    document.getElementById('file-upload').click();
+}
+
+function handleFileUpload(event) {
+    const files = Array.from(event.target.files);
+    
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            uploadedFiles.push({
+                name: file.name,
+                size: file.size,
+                content: e.target.result,
+                saved: false,
+                timestamp: new Date().toISOString()
+            });
+            refreshFiles();
+            updateSaveButton();
+        };
+        reader.readAsText(file);
+    });
+    
+    event.target.value = '';
+}
+
+function loadFromRoom() {
+    fetch(`/api/load-from-room?room=${currentRoom}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.files && data.files.length > 0) {
+                data.files.forEach(file => {
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.content.length,
+                        content: file.content,
+                        saved: true,
+                        timestamp: file.timestamp || new Date().toISOString()
+                    });
+                });
+                refreshFiles();
+                showNotification(`Loaded ${data.files.length} file(s) from ${currentRoom}`, 'success');
+            } else {
+                showNotification(`No files found in ${currentRoom}`, 'info');
+            }
+        })
+        .catch(error => {
+            console.error('Load error:', error);
+            showNotification('Failed to load files from room', 'error');
+        });
+}
+
+function saveToRoom() {
+    const unsavedFiles = uploadedFiles.filter(f => !f.saved);
+    
+    if (unsavedFiles.length === 0) {
+        showNotification('All files already saved!', 'info');
+        return;
+    }
+    
+    const saveBtn = document.getElementById('save-to-room-btn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = '💾 SAVING...';
+    
+    const promises = unsavedFiles.map(file => {
+        return fetch('/api/save-to-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                room: currentRoom,
+                filename: file.name,
+                content: file.content
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                file.saved = true;
+                return { success: true, file: file.name };
+            } else {
+                return { success: false, file: file.name, error: data.message };
+            }
+        });
+    });
+    
+    Promise.all(promises)
+        .then(results => {
+            const succeeded = results.filter(r => r.success).length;
+            const failed = results.filter(r => !r.success).length;
+            
+            if (failed === 0) {
+                showNotification(`✅ Saved ${succeeded} file(s) to ${currentRoom}`, 'success');
+            } else {
+                showNotification(`⚠️ Saved ${succeeded}, failed ${failed}`, 'warning');
+            }
+            
+            refreshFiles();
+            updateSaveButton();
+            saveBtn.textContent = '💾 SAVE TO ROOM';
+        })
+        .catch(error => {
+            console.error('Save error:', error);
+            showNotification('Failed to save files', 'error');
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 SAVE TO ROOM';
+        });
+}
+
+function updateSaveButton() {
+    const saveBtn = document.getElementById('save-to-room-btn');
+    const unsavedCount = uploadedFiles.filter(f => !f.saved).length;
+    
+    if (unsavedCount > 0) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = `💾 SAVE ${unsavedCount} TO ROOM`;
+    } else {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '💾 ALL SAVED';
+    }
+}
+
+function refreshFiles() {
+    renderFiles(uploadedFiles);
+}
+
+function renderFiles(files) {
+    const grid = document.getElementById('file-grid');
+    grid.innerHTML = '';
+    
+    if (!files || files.length === 0) {
+        grid.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">No files loaded. Click 📤 to upload or 📥 to load from room.</div>';
+        document.getElementById('file-count').textContent = '0 files';
+        return;
+    }
+    
+    files.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item' + (file.saved ? ' saved' : '');
+        item.onclick = () => selectFile(file, index);
+        
+        const icon = getFileIcon(file.name);
+        const size = formatSize(file.size);
+        
+        item.innerHTML = `
+            <div class="file-icon">${icon}</div>
+            <div class="file-name">${file.name}</div>
+            <div class="file-meta">${size}</div>
+        `;
+        
+        grid.appendChild(item);
+    });
+    
+    document.getElementById('file-count').textContent = `${files.length} file${files.length !== 1 ? 's' : ''}`;
+}
+
+function selectFile(file, index) {
+    selectedFile = file;
+    
+    document.querySelectorAll('.file-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === index);
+    });
+    
+    document.getElementById('selected-file').textContent = file.name + (file.saved ? ' 💾' : '');
+    
+    if (currentMode === 'code') {
+        loadCodeView(file);
+    }
+}
+
+function loadCodeView(file) {
+    document.getElementById('code-filename').textContent = file.name;
+    document.getElementById('code-status').textContent = file.saved ? '💾 Saved' : '🔓 Unsaved';
+    
+    const lines = file.content.split('\n').length;
+    document.getElementById('code-lines').textContent = `${lines} lines`;
+    document.getElementById('code-size').textContent = formatSize(file.content.length);
+    
+    const codeBlock = document.getElementById('code-content');
+    codeBlock.innerHTML = `<code>${escapeHtml(file.content)}</code>`;
+}
+
+function showNotification(message, type) {
+    const colors = {
+        success: '#4caf50',
+        error: '#f44336',
+        warning: '#ff9800',
+        info: '#2196f3'
+    };
+    
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type] || colors.info};
+        color: #000;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 12px;
+        z-index: 10000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    `;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.style.transition = 'opacity 0.3s';
+        notif.style.opacity = '0';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
+}
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const icons = {
+        'py': '🐍',
+        'js': '📜',
+        'ts': '📘',
+        'cpp': '⚙️',
+        'h': '📋',
+        'json': '📊',
+        'md': '📝',
+        'txt': '📄',
+        'lock': '🔒'
+    };
+    return icons[ext] || '📄';
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function navigateTo(path) {
+    console.log('Navigate to:', path);
+}
+
+// Listen for room selection from Room 1
+if (typeof connector !== 'undefined') {
+    connector.on('room_selected', (data) => {
+        currentRoom = data.room;
+        document.getElementById('current-room').textContent = data.room;
+        uploadedFiles = [];
+        refreshFiles();
+        updateSaveButton();
+    });
+}
+</script>
+</div>
+        <div class="room" id="room4"><div class="room-header" style="background: linear-gradient(90deg, #9c27b0, #ba68c8); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 4 ] AI PARTNER — K9 SOLDIER MODE
+    <span id="ai-status" style="float: right; font-size: 9px; color: #000;">🟢 ONLINE</span>
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; height: 100%; padding: 6px; gap: 6px;">
+    
+    <!-- AI Status Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px; background: rgba(156,39,176,0.1); border: 1px solid #9c27b0; font-size: 9px;">
+        <div style="color: #9c27b0;">
+            <span>📝 Notes: <strong id="notes-count">0</strong></span> | 
+            <span>🧠 Memory: <strong id="memory-count">0</strong></span> | 
+            <span>🔒 Locks: <strong id="locks-count">0</strong></span>
+        </div>
+        <div style="color: #666;">
+            Session: <span id="session-time" style="color: #9c27b0;">0m</span>
+        </div>
+    </div>
+
+    <!-- AI Observation Panel -->
+    <div style="border: 1px solid #9c27b0; padding: 6px; background: rgba(156,39,176,0.05); font-size: 10px;">
+        <div style="color: #9c27b0; font-weight: bold; margin-bottom: 4px;">👁️ AI OBSERVING:</div>
+        <div id="ai-watching" style="color: #666;">
+            Terminal 3 (room-2 files)
+        </div>
+    </div>
+
+    <!-- Chat History -->
+    <div id="chat-history" style="flex: 1; overflow-y: auto; background: #000; border: 2px solid #9c27b0; padding: 8px; font-size: 11px;">
+        <div style="color: #9c27b0; margin-bottom: 8px;">
+            <strong>💡 AI:</strong> Memory bank loaded. Ready to assist. I'll watch your work and suggest improvements when helpful.
+        </div>
+        <div style="color: #666; margin-bottom: 8px;">
+            <em>AI cannot edit code directly. All changes require your approval.</em>
+        </div>
+    </div>
+
+    <!-- Pending Suggestion (appears when AI has suggestion) -->
+    <div id="suggestion-panel" style="display: none; border: 2px solid #ff9800; background: rgba(255,152,0,0.1); padding: 8px; font-size: 10px;">
+        <div style="color: #ff9800; font-weight: bold; margin-bottom: 4px;">💡 AI SUGGESTION:</div>
+        <div id="suggestion-content" style="color: #fff; margin-bottom: 6px;"></div>
+        <div style="display: flex; gap: 4px;">
+            <button onclick="approveSuggestion()" style="background: #4caf50; border: none; color: #000; padding: 4px 12px; cursor: pointer; font-weight: bold;">✓ APPROVE</button>
+            <button onclick="rejectSuggestion()" style="background: #f44336; border: none; color: #000; padding: 4px 12px; cursor: pointer; font-weight: bold;">✗ REJECT</button>
+            <button onclick="explainSuggestion()" style="background: rgba(255,255,255,0.1); border: 1px solid #666; color: #fff; padding: 4px 12px; cursor: pointer;">? EXPLAIN</button>
+        </div>
+    </div>
+
+    <!-- User Input -->
+    <div style="display: flex; gap: 4px;">
+        <input type="text" 
+               id="user-input" 
+               placeholder="Ask AI anything..."
+               style="flex: 1; background: #000; border: 1px solid #9c27b0; color: #fff; padding: 6px; font-size: 11px;"
+               onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()" 
+                style="background: #9c27b0; border: none; color: #000; padding: 6px 16px; cursor: pointer; font-weight: bold; font-size: 11px;">
+            SEND
+        </button>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 4px; font-size: 10px;">
+        <button onclick="viewNotes()" class="ai-action-btn">📝 View Notes</button>
+        <button onclick="viewLocks()" class="ai-action-btn">🔒 Show Locks</button>
+        <button onclick="wipeMemory()" class="ai-action-btn" style="border-color: #f44;">🗑️ Wipe Session</button>
+        <button onclick="aiLogout()" class="ai-action-btn" style="border-color: #ff9800;">🚪 AI Logout</button>
+    </div>
+
+</div>
+
+<style>
+.ai-action-btn {
+    background: rgba(156,39,176,0.1);
+    border: 1px solid #9c27b0;
+    color: #9c27b0;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.ai-action-btn:hover {
+    background: #9c27b0;
+    color: #000;
+}
+
+.chat-message {
+    margin-bottom: 8px;
+    padding: 6px;
+    border-left: 3px solid #9c27b0;
+    background: rgba(156,39,176,0.05);
+}
+
+.chat-message.user {
+    border-left-color: #4caf50;
+    background: rgba(76,175,80,0.05);
+}
+
+.chat-message.ai {
+    border-left-color: #9c27b0;
+}
+
+.chat-message.warning {
+    border-left-color: #ff9800;
+    background: rgba(255,152,0,0.05);
+}
+</style>
+
+<script>
+let sessionStartTime = Date.now();
+let currentSuggestion = null;
+let aiMemory = {
+    persistent: [],
+    working: []
+};
+
+// Update session time
+setInterval(() => {
+    const elapsed = Math.floor((Date.now() - sessionStartTime) / 60000);
+    document.getElementById('session-time').textContent = elapsed + 'm';
+}, 10000);
+
+function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    addChatMessage(message, 'user');
+    
+    // Send to backend
+    fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: message,
+            room: 'room-4',
+            context: aiMemory
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.response) {
+            addChatMessage(data.response, 'ai');
+        }
+        
+        if (data.suggestion) {
+            showSuggestion(data.suggestion);
+        }
+        
+        if (data.note) {
+            aiMemory.working.push(data.note);
+            updateMemoryCount();
+        }
+    })
+    .catch(error => {
+        console.error('AI chat error:', error);
+        addChatMessage('Connection error. AI offline.', 'warning');
+    });
+    
+    input.value = '';
+}
+
+function addChatMessage(text, type) {
+    const chatHistory = document.getElementById('chat-history');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${type}`;
+    
+    const icon = type === 'user' ? '👤 YOU' : type === 'ai' ? '💡 AI' : '⚠️ SYSTEM';
+    msgDiv.innerHTML = `<strong>${icon}:</strong> ${escapeHtml(text)}`;
+    
+    chatHistory.appendChild(msgDiv);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function showSuggestion(suggestion) {
+    currentSuggestion = suggestion;
+    document.getElementById('suggestion-panel').style.display = 'block';
+    document.getElementById('suggestion-content').textContent = suggestion.content;
+}
+
+function approveSuggestion() {
+    if (!currentSuggestion) return;
+    
+    fetch('/api/ai-apply-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            suggestion: currentSuggestion,
+            approved: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        addChatMessage('✅ Suggestion applied: ' + data.message, 'ai');
+        document.getElementById('suggestion-panel').style.display = 'none';
+        currentSuggestion = null;
+    });
+}
+
+function rejectSuggestion() {
+    addChatMessage('✗ Suggestion rejected by user', 'ai');
+    document.getElementById('suggestion-panel').style.display = 'none';
+    currentSuggestion = null;
+}
+
+function explainSuggestion() {
+    if (!currentSuggestion) return;
+    
+    fetch('/api/ai-explain-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suggestion: currentSuggestion })
+    })
+    .then(response => response.json())
+    .then(data => {
+        addChatMessage(data.explanation, 'ai');
+    });
+}
+
+function viewNotes() {
+    fetch('/api/ai-notes?room=room-4')
+        .then(response => response.json())
+        .then(data => {
+            const notes = data.notes || [];
+            addChatMessage(`📝 Found ${notes.length} notes. Recent: ${notes.slice(-3).map(n => n.content).join(', ')}`, 'ai');
+        });
+}
+
+function viewLocks() {
+    fetch('/api/ai-locks')
+        .then(response => response.json())
+        .then(data => {
+            const locks = data.locks || [];
+            addChatMessage(`🔒 ${locks.length} modules locked: ${locks.join(', ')}`, 'ai');
+        });
+}
+
+function wipeMemory() {
+    if (!confirm('Wipe working memory? (Persistent notes remain)')) return;
+    
+    fetch('/api/ai-wipe-memory', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            aiMemory.working = [];
+            updateMemoryCount();
+            addChatMessage(`🗑️ Wiped ${data.count} working memory entries`, 'ai');
+        });
+}
+
+function aiLogout() {
+    if (!confirm('AI Logout? Working memory will be wiped.')) return;
+    
+    fetch('/api/ai-logout', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            addChatMessage('🚪 AI logged out. Working memory wiped. Persistent notes saved.', 'ai');
+            document.getElementById('ai-status').textContent = '🔴 OFFLINE';
+            document.getElementById('ai-status').style.color = '#f44';
+        });
+}
+
+function updateMemoryCount() {
+    document.getElementById('memory-count').textContent = aiMemory.working.length;
+}
+
+function loadAIMemory() {
+    fetch('/api/ai-notes?room=room-4')
+        .then(response => response.json())
+        .then(data => {
+            aiMemory.persistent = data.notes || [];
+            document.getElementById('notes-count').textContent = aiMemory.persistent.length;
+            
+            if (aiMemory.persistent.length > 0) {
+                addChatMessage(`Loaded ${aiMemory.persistent.length} notes from previous sessions`, 'ai');
+            }
+        });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Load AI memory on page load
+loadAIMemory();
+
+// Listen for terminal activity (observation mode)
+if (typeof connector !== 'undefined') {
+    connector.on('terminal_activity', (data) => {
+        // AI observes terminal commands
+        if (data.command && data.command.includes('edit') || data.command.includes('save')) {
+            fetch('/api/ai-observe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    activity: data.command,
+                    room: data.room
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.suggestion) {
+                    showSuggestion(result.suggestion);
+                }
+            });
+        }
+    });
+}
+</script>
+</div>
+        <div class="room" id="room3"><div class="room-header" style="background: linear-gradient(90deg, #ff6b00, #ffaa00); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 3 ] EXECUTION TERMINAL
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; gap: 6px; padding: 6px;">
+    
+    <!-- Important Commands Only -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+        <button class="exec-btn" onclick="execQuick('LOCK')">🔒 LOCK</button>
+        <button class="exec-btn" onclick="execQuick('VERIFY')">✓ VERIFY</button>
+        <button class="exec-btn" onclick="execQuick('STATUS')">📊 STATUS</button>
+    </div>
+
+    <!-- Direct Command Input -->
+    <div style="display: flex; align-items: center; background: rgba(255,107,0,0.1); border: 1px solid #ff6b00; padding: 6px;">
+        <span style="color: #ff6b00; font-size: 11px; margin-right: 6px;">$</span>
+        <input type="text" 
+               id="term-input" 
+               placeholder="direct command..." 
+               autocomplete="off"
+               style="flex: 1; background: transparent; border: none; color: #ffaa00; font-family: 'Courier New', monospace; font-size: 11px; outline: none;">
+    </div>
+
+    <!-- Terminal Output -->
+    <div id="term-output" style="flex: 1; background: #000; border: 2px solid #ff6b00; padding: 8px; overflow-y: auto; font-size: 10px; font-family: 'Courier New', monospace; line-height: 1.4;">
+        <div style="color: #ff6b00;">[Execution Terminal]</div>
+        <div style="color: #666;">Awaiting commands from Command Center...</div>
+    </div>
+
+</div>
+
+<style>
+.exec-btn {
+    background: rgba(255,107,0,0.1);
+    border: 1px solid #ff6b00;
+    color: #ff6b00;
+    padding: 8px;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.exec-btn:hover {
+    background: #ff6b00;
+    color: #000;
+}
+</style>
+
+<script>
+// Listen for commands from Room 1
+function sendToTerminal(cmd) {
+    executeCommand(cmd);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('term-input');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value.trim();
+                if (cmd) {
+                    executeCommand(cmd);
+                    e.target.value = '';
+                }
+            }
+        });
+    }
+});
+
+function executeCommand(cmd) {
+    const output = document.getElementById('term-output');
+    if (!output) return;
+    
+    const line = document.createElement('div');
+    line.style.color = '#ffaa00';
+    line.textContent = '$ ' + cmd;
+    output.appendChild(line);
+    
+    // Send to backend
+    if (typeof sendCommand === 'function') {
+        sendCommand(cmd.split(' ')[0], { args: cmd.split(' ').slice(1).join(' ') });
+    }
+    
+    // Simulate response
+    setTimeout(() => {
+        const resp = document.createElement('div');
+        resp.style.color = '#00ff00';
+        resp.textContent = '⚡ Executing ' + cmd + '...';
+        output.appendChild(resp);
+        output.scrollTop = output.scrollHeight;
+    }, 200);
+    
+    output.scrollTop = output.scrollHeight;
+}
+
+function execQuick(cmd) {
+    executeCommand('make ' + cmd.toLowerCase());
+}
+</script>
+</div>
+    </div>
+
+    <div class="footer">
+        <button onclick="sendCommand('FORGE')">FORGE</button>
+        <button onclick="sendCommand('SPLIT')">SPLIT</button>
+        <button onclick="sendCommand('SORT')">SORT</button>
+        <button onclick="sendCommand('INTEGRATE')">INTEGRATE</button>
+        <button onclick="sendCommand('BUILD')">BUILD</button>
+    </div>
+
+    <script>// FlowStation Connector — FC_FLOW WebSocket bridge
+// Connects UI panels to FlowStation-v1.1.0-FC_FLOW.py backend
+
+const WS_URL = 'ws://localhost:8081';
+let ws = null;
+
+function connectFlowStation() {
+    ws = new WebSocket(WS_URL);
+    ws.onopen = () => console.log('[FC_FLOW] Connected to FlowStation mesh');
+    ws.onmessage = (e) => handleMeshEvent(JSON.parse(e.data));
+    ws.onclose = () => setTimeout(connectFlowStation, 3000);
+    ws.onerror = (e) => console.error('[FC_FLOW] WebSocket error', e);
+}
+
+function handleMeshEvent(data) {
+    console.log('[FC_FLOW] Mesh event:', data);
+}
+
+function sendCommand(cmd, payload = {}) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ command: cmd, ...payload }));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', connectFlowStation);
+
+
+let ws;
+let wsReconnectTimer;
+
+function connectWebSocket() {
+    ws = new WebSocket('ws://' + window.location.hostname + ':8081');
+    
+    ws.onopen = () => {
+        console.log('WebSocket connected');
+        document.getElementById('ws-status').textContent = '● LIVE';
+        document.getElementById('ws-status').style.color = '#00ff00';
+    };
+
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            handleWebSocketMessage(data);
+        } catch (e) {
+            console.error('Parse error:', e);
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+        document.getElementById('ws-status').textContent = '● RECONNECTING';
+        document.getElementById('ws-status').style.color = '#ff0000';
+        wsReconnectTimer = setTimeout(connectWebSocket, 2000);
+    };
+}
+
+function handleWebSocketMessage(data) {
+    if (data.event === 'CYCLE') {
+        updateElement('gear', data.payload.gear);
+        updateElement('health', `${data.payload.health}/50`);
+        updateElement('cycles', data.payload.cycle);
+        updateElement('mode', data.payload.mode || 'NORMAL');
+        updateElement('rate', data.payload.rate || 0);
+        updateElement('pressure', data.payload.pressure || 0.5);
+    } else if (data.event === 'ROOM_UPDATE') {
+        updateRoomList(data.payload);
+    } else if (data.event === 'AI_MESSAGE') {
+        addAIMessage(data.payload);
+    } else if (data.event === 'TERMINAL_OUTPUT') {
+        addTerminalOutput(data.payload);
+    }
+}
+
+function updateElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function updateRoomList(rooms) {
+    const roomList = document.getElementById('room-list');
+    if (!roomList) return;
+    
+    roomList.innerHTML = '';
+    let count = 0;
+    for (const [name, status] of Object.entries(rooms)) {
+        const color = status === 'HEALTHY' ? '#00ff00' : '#ff0000';
+        roomList.innerHTML += `<div style="color: ${color}; margin: 3px 0;">▸ ${name}: ${status}</div>`;
+        if (status === 'HEALTHY') count++;
+    }
+    updateElement('room-count', count);
+}
+
+function addAIMessage(msg) {
+    const feed = document.getElementById('ai-feed');
+    if (!feed) return;
+    
+    const div = document.createElement('div');
+    div.className = 'ai-msg';
+    div.textContent = `🤖 ${msg}`;
+    feed.appendChild(div);
+    feed.scrollTop = feed.scrollHeight;
+}
+
+function addTerminalOutput(output) {
+    const terminal = document.getElementById('terminal-output');
+    if (!terminal) return;
+    
+    const div = document.createElement('div');
+    div.className = 'terminal-output';
+    div.textContent = output;
+    terminal.appendChild(div);
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+function sendCommand(cmd, params = {}) {
+    addTerminalOutput(`> ${cmd} ${JSON.stringify(params)}`);
+    
+    fetch('/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmd, params: params })
+    }).then(r => r.json()).then(data => {
+        addTerminalOutput(`✓ ${cmd}: ${JSON.stringify(data)}`);
+    }).catch(err => {
+        addTerminalOutput(`✗ ${cmd} failed: ${err}`);
+    });
+}
+
+// Terminal input handler
+document.addEventListener('DOMContentLoaded', () => {
+    const termInput = document.getElementById('terminal-input');
+    if (termInput) {
+        termInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value.trim();
+                if (cmd) {
+                    addTerminalOutput(`$ ${cmd}`);
+                    sendCommand(cmd);
+                    e.target.value = '';
+                }
+            }
+        });
+    }
+    
+    const aiInput = document.getElementById('ai-input');
+    if (aiInput) {
+        aiInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const msg = e.target.value.trim();
+                if (msg) {
+                    addAIMessage(`You: ${msg}`);
+                    // TODO: Send to AI backend
+                    e.target.value = '';
+                }
+            }
+        });
+    }
+});
+
+// Initialize
+connectWebSocket();
+
+// Fetch initial state
+fetch('/state').then(r => r.json()).then(data => {
+    if (data.turf && data.turf.rooms) {
+        updateRoomList(data.turf.rooms);
+    }
+}).catch(err => console.error('State fetch failed:', err));
+</script>
+</body>
+</html>
+

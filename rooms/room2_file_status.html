@@ -1,0 +1,440 @@
+<div class="room-header" style="background: linear-gradient(90deg, #4caf50, #66bb6a); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 2 ] FILE CENTER
+    <span id="room2-mode-label" style="float: right; font-size: 9px; color: #333;">MIXPLORER MODE</span>
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; height: 100%; padding: 6px; gap: 6px;">
+    
+    <!-- Mode Toggle + Actions Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px; background: rgba(76,175,80,0.1); border: 1px solid #4caf50;">
+        <div style="display: flex; gap: 4px;">
+            <button id="mode-files" class="mode-btn active" onclick="switchMode('files')">📁 Files</button>
+            <button id="mode-code" class="mode-btn" onclick="switchMode('code')"></> Code</button>
+        </div>
+        
+        <div style="display: flex; gap: 4px;">
+            <button class="action-btn" onclick="uploadFile()" title="Upload from device">📤</button>
+            <button class="action-btn" onclick="loadFromRoom()" title="Load from FlowStation">📥</button>
+            <button class="action-btn" onclick="refreshFiles()" title="Refresh">🔄</button>
+            <input type="file" id="file-upload" style="display: none;" onchange="handleFileUpload(event)" multiple>
+        </div>
+    </div>
+
+    <!-- Current Path Breadcrumb -->
+    <div id="breadcrumb" style="font-size: 10px; color: #4caf50; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+        <span onclick="navigateTo('forge')">forge</span> / 
+        <span onclick="navigateTo('forge/active')">active</span> / 
+        <span id="current-room" style="color: #fff; font-weight: bold;">room-2</span>
+    </div>
+
+    <!-- FILE SYSTEM VIEW (MiXplorer Mode) -->
+    <div id="file-system-view" style="flex: 1; overflow-y: auto; background: #000; border: 2px solid #4caf50; padding: 6px;">
+        <div class="file-grid" id="file-grid">
+            <div class="loading" style="color: #666; text-align: center; padding: 20px;">No files loaded. Click 📤 to upload or 📥 to load from room.</div>
+        </div>
+    </div>
+
+    <!-- CODE VIEW (Code Display Mode) -->
+    <div id="code-view" style="flex: 1; overflow-y: auto; background: #000; border: 2px solid #4caf50; padding: 8px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #4caf50;">
+            <div style="color: #4caf50; font-size: 11px; font-weight: bold;" id="code-filename">No file selected</div>
+            <div style="font-size: 9px; color: #666;">
+                <span id="code-lines">0 lines</span> | 
+                <span id="code-size">0 KB</span> | 
+                <span id="code-status">🔓 Unlocked</span>
+            </div>
+        </div>
+        <pre id="code-content" style="margin: 0; font-family: 'Courier New', monospace; font-size: 11px; color: #aaa; line-height: 1.4; white-space: pre-wrap;"><code>Select a file to view its contents</code></pre>
+    </div>
+
+    <!-- File Info Footer + Save Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+        <div style="display: flex; gap: 8px; color: #666;">
+            <span id="file-count">0 files</span>
+            <span id="selected-file">No selection</span>
+        </div>
+        <button id="save-to-room-btn" 
+                onclick="saveToRoom()" 
+                disabled
+                style="background: rgba(255,152,0,0.2); border: 2px solid #ff9800; color: #ff9800; padding: 6px 12px; font-weight: bold; cursor: not-allowed; font-size: 10px;">
+            💾 SAVE TO ROOM
+        </button>
+    </div>
+
+</div>
+
+<style>
+.mode-btn {
+    background: rgba(76,175,80,0.1);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    padding: 4px 12px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mode-btn:hover {
+    background: rgba(76,175,80,0.3);
+}
+.mode-btn.active {
+    background: #4caf50;
+    color: #000;
+    font-weight: bold;
+}
+
+.action-btn {
+    background: rgba(76,175,80,0.1);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.action-btn:hover {
+    background: #4caf50;
+    color: #000;
+}
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+}
+
+.file-item {
+    background: rgba(76,175,80,0.05);
+    border: 1px solid #333;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+}
+.file-item:hover {
+    background: rgba(76,175,80,0.2);
+    border-color: #4caf50;
+}
+.file-item.selected {
+    background: rgba(76,175,80,0.3);
+    border-color: #4caf50;
+}
+.file-item.saved {
+    border-color: #ff9800;
+}
+.file-item.saved::after {
+    content: '💾';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+}
+
+.file-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.file-name {
+    font-size: 9px;
+    color: #aaa;
+    word-break: break-word;
+}
+.file-meta {
+    font-size: 8px;
+    color: #666;
+    margin-top: 2px;
+}
+
+#save-to-room-btn:not([disabled]) {
+    background: #ff9800;
+    color: #000;
+    cursor: pointer;
+}
+#save-to-room-btn:not([disabled]):hover {
+    background: #ffa726;
+    transform: scale(1.05);
+}
+</style>
+
+<script>
+// In-memory file storage
+let uploadedFiles = [];
+let currentMode = 'files';
+let currentRoom = 'room-2';
+let selectedFile = null;
+
+function switchMode(mode) {
+    currentMode = mode;
+    
+    document.getElementById('mode-files').classList.toggle('active', mode === 'files');
+    document.getElementById('mode-code').classList.toggle('active', mode === 'code');
+    
+    document.getElementById('file-system-view').style.display = mode === 'files' ? 'block' : 'none';
+    document.getElementById('code-view').style.display = mode === 'code' ? 'block' : 'none';
+    
+    const header = document.getElementById('room2-mode-label');
+    header.textContent = mode === 'files' ? 'MIXPLORER MODE' : 'CODE VIEW MODE';
+    
+    if (mode === 'code' && selectedFile) {
+        loadCodeView(selectedFile);
+    }
+}
+
+function uploadFile() {
+    document.getElementById('file-upload').click();
+}
+
+function handleFileUpload(event) {
+    const files = Array.from(event.target.files);
+    
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            uploadedFiles.push({
+                name: file.name,
+                size: file.size,
+                content: e.target.result,
+                saved: false,
+                timestamp: new Date().toISOString()
+            });
+            refreshFiles();
+            updateSaveButton();
+        };
+        reader.readAsText(file);
+    });
+    
+    event.target.value = '';
+}
+
+function loadFromRoom() {
+    fetch(`/api/load-from-room?room=${currentRoom}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.files && data.files.length > 0) {
+                data.files.forEach(file => {
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.content.length,
+                        content: file.content,
+                        saved: true,
+                        timestamp: file.timestamp || new Date().toISOString()
+                    });
+                });
+                refreshFiles();
+                showNotification(`Loaded ${data.files.length} file(s) from ${currentRoom}`, 'success');
+            } else {
+                showNotification(`No files found in ${currentRoom}`, 'info');
+            }
+        })
+        .catch(error => {
+            console.error('Load error:', error);
+            showNotification('Failed to load files from room', 'error');
+        });
+}
+
+function saveToRoom() {
+    const unsavedFiles = uploadedFiles.filter(f => !f.saved);
+    
+    if (unsavedFiles.length === 0) {
+        showNotification('All files already saved!', 'info');
+        return;
+    }
+    
+    const saveBtn = document.getElementById('save-to-room-btn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = '💾 SAVING...';
+    
+    const promises = unsavedFiles.map(file => {
+        return fetch('/api/save-to-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                room: currentRoom,
+                filename: file.name,
+                content: file.content
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                file.saved = true;
+                return { success: true, file: file.name };
+            } else {
+                return { success: false, file: file.name, error: data.message };
+            }
+        });
+    });
+    
+    Promise.all(promises)
+        .then(results => {
+            const succeeded = results.filter(r => r.success).length;
+            const failed = results.filter(r => !r.success).length;
+            
+            if (failed === 0) {
+                showNotification(`✅ Saved ${succeeded} file(s) to ${currentRoom}`, 'success');
+            } else {
+                showNotification(`⚠️ Saved ${succeeded}, failed ${failed}`, 'warning');
+            }
+            
+            refreshFiles();
+            updateSaveButton();
+            saveBtn.textContent = '💾 SAVE TO ROOM';
+        })
+        .catch(error => {
+            console.error('Save error:', error);
+            showNotification('Failed to save files', 'error');
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 SAVE TO ROOM';
+        });
+}
+
+function updateSaveButton() {
+    const saveBtn = document.getElementById('save-to-room-btn');
+    const unsavedCount = uploadedFiles.filter(f => !f.saved).length;
+    
+    if (unsavedCount > 0) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = `💾 SAVE ${unsavedCount} TO ROOM`;
+    } else {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '💾 ALL SAVED';
+    }
+}
+
+function refreshFiles() {
+    renderFiles(uploadedFiles);
+}
+
+function renderFiles(files) {
+    const grid = document.getElementById('file-grid');
+    grid.innerHTML = '';
+    
+    if (!files || files.length === 0) {
+        grid.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">No files loaded. Click 📤 to upload or 📥 to load from room.</div>';
+        document.getElementById('file-count').textContent = '0 files';
+        return;
+    }
+    
+    files.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item' + (file.saved ? ' saved' : '');
+        item.onclick = () => selectFile(file, index);
+        
+        const icon = getFileIcon(file.name);
+        const size = formatSize(file.size);
+        
+        item.innerHTML = `
+            <div class="file-icon">${icon}</div>
+            <div class="file-name">${file.name}</div>
+            <div class="file-meta">${size}</div>
+        `;
+        
+        grid.appendChild(item);
+    });
+    
+    document.getElementById('file-count').textContent = `${files.length} file${files.length !== 1 ? 's' : ''}`;
+}
+
+function selectFile(file, index) {
+    selectedFile = file;
+    
+    document.querySelectorAll('.file-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === index);
+    });
+    
+    document.getElementById('selected-file').textContent = file.name + (file.saved ? ' 💾' : '');
+    
+    if (currentMode === 'code') {
+        loadCodeView(file);
+    }
+}
+
+function loadCodeView(file) {
+    document.getElementById('code-filename').textContent = file.name;
+    document.getElementById('code-status').textContent = file.saved ? '💾 Saved' : '🔓 Unsaved';
+    
+    const lines = file.content.split('\n').length;
+    document.getElementById('code-lines').textContent = `${lines} lines`;
+    document.getElementById('code-size').textContent = formatSize(file.content.length);
+    
+    const codeBlock = document.getElementById('code-content');
+    codeBlock.innerHTML = `<code>${escapeHtml(file.content)}</code>`;
+}
+
+function showNotification(message, type) {
+    const colors = {
+        success: '#4caf50',
+        error: '#f44336',
+        warning: '#ff9800',
+        info: '#2196f3'
+    };
+    
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type] || colors.info};
+        color: #000;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 12px;
+        z-index: 10000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    `;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.style.transition = 'opacity 0.3s';
+        notif.style.opacity = '0';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
+}
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const icons = {
+        'py': '🐍',
+        'js': '📜',
+        'ts': '📘',
+        'cpp': '⚙️',
+        'h': '📋',
+        'json': '📊',
+        'md': '📝',
+        'txt': '📄',
+        'lock': '🔒'
+    };
+    return icons[ext] || '📄';
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function navigateTo(path) {
+    console.log('Navigate to:', path);
+}
+
+// Listen for room selection from Room 1
+if (typeof connector !== 'undefined') {
+    connector.on('room_selected', (data) => {
+        currentRoom = data.room;
+        document.getElementById('current-room').textContent = data.room;
+        uploadedFiles = [];
+        refreshFiles();
+        updateSaveButton();
+    });
+}
+</script>
