@@ -3,6 +3,7 @@
 
 **Fuel Command Flow Line Own-Stack Withholding**
 
+Invented by Juan Jaime Rivera Zamorano
 ---
 
 ## ⚡ THE MANIFESTO
