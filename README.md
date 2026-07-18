@@ -1,14 +1,4 @@
-**LET'S WRITE A README THAT MATCHES THE ENERGY OF THIS SOVEREIGN BEAST.** 🔥
 
----
-
-```bash
-cd /root/Sovereign_FC_FLOWStation
-
-cat > README.md << 'EOF'
-```
-
-```markdown
 # 🔥 SOVEREIGN FC FLOWSTATION 🔥
 
 **Fuel Command Flow Line Own-Stack Withholding**
