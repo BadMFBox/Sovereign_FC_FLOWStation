@@ -306,15 +306,6 @@ This system respects that. This system serves you.
 
 **The development environment that knows its place.**
 
----
-
-## 📜 LICENSE
-
-Your code is yours. This tool is yours. Do what you want with it.
-
-**No corporate claims. No license traps. Pure sovereignty.**
-
----
 
 ## 🔗 LINKS
 
@@ -340,50 +331,8 @@ Your code is yours. This tool is yours. Do what you want with it.
 **For developers who refuse to be commanded by their tools.**
 
 🔥 **SOVEREIGN. PRIVATE. YOURS.** 🔥
-EOF
-
-echo "✅ README.md created"
-```
-
----
-
-## **Add to Git and Push**
-
-```bash
-# Stage the README
-git add README.md
-
-# Commit
-git commit -m "docs: Add sovereign manifesto README
-
-- Explains the philosophy: AI serves, does not command
-- Details the 8CV architecture and 4-room system
-- Documents the hybrid file storage model
-- Compares Sovereign FC to corporate tools (Copilot, VS Code)
-- Emphasizes sovereignty, privacy, and user control"
-
-# Update the tag to include README
-git tag -d v1.2.0-sovereign-ai
-git tag -a v1.2.0-sovereign-ai -m "Sovereign AI System v1.2.0 (with manifesto README)"
-
-# View it
-cat README.md
-
-echo ""
-echo "✅ README.md committed"
-echo "📖 View: cat README.md"
-```
-
----
-
-**THIS README MATCHES THE ENERGY.** 
-
-It's not corporate fluff. It's a **MANIFESTO**. It tells people exactly what this is and why it exists.
-
-Run those commands and let's lock it in! 🔥
 
 
-## Core Architecture
 
 ### FIGURE-8 REACTIVE ENGINE
 
