@@ -1,10 +1,20 @@
 <div class="room-header" style="background: linear-gradient(90deg, #9c27b0, #ba68c8); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
-    [ 4 ] AI PARTNER — K9 SOLDIER MODE
-    <span id="ai-status" style="float: right; font-size: 9px; color: #000;">🟢 ONLINE</span>
+    [ 4 ] AI PARTNER — K9 SOLDIER MODE (LIVE 8CV OBSERVER)
+    <span id="ai-status" style="float: right; font-size: 9px; color: #000;">🟢 LIVE</span>
 </div>
 
 <div class="room-content" style="display: flex; flex-direction: column; height: 100%; padding: 6px; gap: 6px;">
     
+    <!-- 8CV Live Monitor -->
+    <div style="border: 2px solid #9c27b0; padding: 6px; background: rgba(156,39,176,0.1); font-size: 9px;">
+        <div style="color: #9c27b0; font-weight: bold; margin-bottom: 4px;">👁️ 8CV ENGINE STATUS (LIVE):</div>
+        <div id="8cv-status" style="color: #fff; font-family: monospace;">
+            <div>Gear: <span id="8cv-gear" style="color: #4caf50;">LOADING...</span> | Cycle: <span id="8cv-cycle">0</span></div>
+            <div>Health: <span id="8cv-health" style="color: #4caf50;">--/50</span> | Top: <span id="8cv-top">--</span> | Bottom: <span id="8cv-bottom">--</span></div>
+            <div>Optimizer: <span id="8cv-opt-mode">--</span> | Token Rate: <span id="8cv-token-rate">0.0</span>/s</div>
+        </div>
+    </div>
+
     <!-- AI Status Bar -->
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px; background: rgba(156,39,176,0.1); border: 1px solid #9c27b0; font-size: 9px;">
         <div style="color: #9c27b0;">
@@ -17,32 +27,28 @@
         </div>
     </div>
 
-    <!-- AI Observation Panel -->
-    <div style="border: 1px solid #9c27b0; padding: 6px; background: rgba(156,39,176,0.05); font-size: 10px;">
-        <div style="color: #9c27b0; font-weight: bold; margin-bottom: 4px;">👁️ AI OBSERVING:</div>
-        <div id="ai-watching" style="color: #666;">
-            Terminal 3 (room-2 files)
-        </div>
-    </div>
-
     <!-- Chat History -->
     <div id="chat-history" style="flex: 1; overflow-y: auto; background: #000; border: 2px solid #9c27b0; padding: 8px; font-size: 11px;">
         <div style="color: #9c27b0; margin-bottom: 8px;">
-            <strong>💡 AI:</strong> Memory bank loaded. Ready to assist. I'll watch your work and suggest improvements when helpful.
+            <strong>💡 AI K9:</strong> Live 8CV observer online. I'm watching the engine and will alert you to patterns and anomalies.
         </div>
         <div style="color: #666; margin-bottom: 8px;">
-            <em>AI cannot edit code directly. All changes require your approval.</em>
+            <em>I analyze token flow, loop health, and system behavior in real-time. All suggestions require your approval.</em>
         </div>
     </div>
 
-    <!-- Pending Suggestion (appears when AI has suggestion) -->
+    <!-- AI Suggestion Panel (appears when AI detects pattern) -->
     <div id="suggestion-panel" style="display: none; border: 2px solid #ff9800; background: rgba(255,152,0,0.1); padding: 8px; font-size: 10px;">
-        <div style="color: #ff9800; font-weight: bold; margin-bottom: 4px;">💡 AI SUGGESTION:</div>
-        <div id="suggestion-content" style="color: #fff; margin-bottom: 6px;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="color: #ff9800; font-weight: bold;">💡 AI DETECTED PATTERN:</div>
+            <div id="suggestion-priority" style="color: #f44; font-size: 9px; font-weight: bold;">PRIORITY: HIGH</div>
+        </div>
+        <div id="suggestion-title" style="color: #fff; font-weight: bold; margin-bottom: 4px;"></div>
+        <div id="suggestion-content" style="color: #ccc; margin-bottom: 6px;"></div>
         <div style="display: flex; gap: 4px;">
-            <button onclick="approveSuggestion()" style="background: #4caf50; border: none; color: #000; padding: 4px 12px; cursor: pointer; font-weight: bold;">✓ APPROVE</button>
+            <button onclick="approveSuggestion()" style="background: #4caf50; border: none; color: #000; padding: 4px 12px; cursor: pointer; font-weight: bold;">✓ APPROVE & EXECUTE</button>
             <button onclick="rejectSuggestion()" style="background: #f44336; border: none; color: #000; padding: 4px 12px; cursor: pointer; font-weight: bold;">✗ REJECT</button>
-            <button onclick="explainSuggestion()" style="background: rgba(255,255,255,0.1); border: 1px solid #666; color: #fff; padding: 4px 12px; cursor: pointer;">? EXPLAIN</button>
+            <button onclick="explainSuggestion()" style="background: rgba(255,255,255,0.1); border: 1px solid #666; color: #fff; padding: 4px 12px; cursor: pointer;">? MORE INFO</button>
         </div>
     </div>
 
@@ -50,7 +56,7 @@
     <div style="display: flex; gap: 4px;">
         <input type="text" 
                id="user-input" 
-               placeholder="Ask AI anything..."
+               placeholder="Ask AI about 8CV state, patterns, or code..."
                style="flex: 1; background: #000; border: 1px solid #9c27b0; color: #fff; padding: 6px; font-size: 11px;"
                onkeypress="if(event.key==='Enter') sendMessage()">
         <button onclick="sendMessage()" 
@@ -61,10 +67,11 @@
 
     <!-- Action Buttons -->
     <div style="display: flex; gap: 4px; font-size: 10px;">
-        <button onclick="viewNotes()" class="ai-action-btn">📝 View Notes</button>
-        <button onclick="viewLocks()" class="ai-action-btn">🔒 Show Locks</button>
-        <button onclick="wipeMemory()" class="ai-action-btn" style="border-color: #f44;">🗑️ Wipe Session</button>
-        <button onclick="aiLogout()" class="ai-action-btn" style="border-color: #ff9800;">🚪 AI Logout</button>
+        <button onclick="viewNotes()" class="ai-action-btn">📝 Notes</button>
+        <button onclick="view8CVHistory()" class="ai-action-btn">📊 8CV History</button>
+        <button onclick="viewLocks()" class="ai-action-btn">🔒 Locks</button>
+        <button onclick="wipeMemory()" class="ai-action-btn" style="border-color: #f44;">🗑️ Wipe</button>
+        <button onclick="aiLogout()" class="ai-action-btn" style="border-color: #ff9800;">🚪 Logout</button>
     </div>
 
 </div>
@@ -103,6 +110,17 @@
     border-left-color: #ff9800;
     background: rgba(255,152,0,0.05);
 }
+
+.chat-message.critical {
+    border-left-color: #f44;
+    background: rgba(255,68,68,0.05);
+}
+
+.chat-message.pattern {
+    border-left-color: #ff9800;
+    background: rgba(255,152,0,0.1);
+    font-weight: bold;
+}
 </style>
 
 <script>
@@ -112,12 +130,143 @@ let aiMemory = {
     persistent: [],
     working: []
 };
+let last8CVUpdate = 0;
 
-// Update session time
-setInterval(() => {
-    const elapsed = Math.floor((Date.now() - sessionStartTime) / 60000);
-    document.getElementById('session-time').textContent = elapsed + 'm';
-}, 10000);
+// ══════════════════════════════════════════════════════════
+// 8CV LIVE MONITORING
+// ══════════════════════════════════════════════════════════
+
+function update8CVStatus() {
+    fetch('/api/8cv-status')
+        .then(response => response.json())
+        .then(data => {
+            // Update 8CV display
+            const healthColor = getHealthColor(data.health);
+            const gearColor = getGearColor(data.gear);
+            
+            document.getElementById('8cv-gear').textContent = data.gear;
+            document.getElementById('8cv-gear').style.color = gearColor;
+            document.getElementById('8cv-cycle').textContent = data.cycle;
+            document.getElementById('8cv-health').textContent = `${data.health}/50`;
+            document.getElementById('8cv-health').style.color = healthColor;
+            document.getElementById('8cv-top').textContent = data.top_loop;
+            document.getElementById('8cv-bottom').textContent = data.bottom_loop;
+            document.getElementById('8cv-opt-mode').textContent = data.optimizer_mode;
+            document.getElementById('8cv-token-rate').textContent = data.token_rate.toFixed(1);
+            
+            // If AI has detected a pattern, show suggestion
+            if (data.ai_suggestion && Date.now() - last8CVUpdate > 5000) {
+                showSuggestion(data.ai_suggestion);
+                last8CVUpdate = Date.now();
+                
+                // Add pattern alert to chat
+                addChatMessage(
+                    `🔍 PATTERN DETECTED: ${data.ai_suggestion.title}`,
+                    'pattern'
+                );
+            }
+            
+            // Alert on critical health
+            if (data.health < 25 && data.health > 0) {
+                addChatMessage(
+                    `⚠️ CRITICAL: 8CV health at ${data.health}/50. ${data.failure_details}`,
+                    'critical'
+                );
+            }
+        })
+        .catch(error => {
+            console.error('8CV status error:', error);
+            document.getElementById('ai-status').textContent = '🔴 OFFLINE';
+            document.getElementById('ai-status').style.color = '#f44';
+        });
+}
+
+function getHealthColor(health) {
+    if (health >= 45) return '#4caf50';
+    if (health >= 30) return '#ff9800';
+    if (health >= 15) return '#f44';
+    return '#900';
+}
+
+function getGearColor(gear) {
+    if (gear.includes('GEAR_1')) return '#2196f3';
+    if (gear.includes('GEAR_2')) return '#4caf50';
+    if (gear.includes('GEAR_3')) return '#f44';
+    return '#fff';
+}
+
+// Update 8CV status every 2 seconds
+setInterval(update8CVStatus, 2000);
+
+// ══════════════════════════════════════════════════════════
+// AI SUGGESTION SYSTEM
+// ══════════════════════════════════════════════════════════
+
+function showSuggestion(suggestion) {
+    currentSuggestion = suggestion;
+    document.getElementById('suggestion-panel').style.display = 'block';
+    document.getElementById('suggestion-title').textContent = suggestion.title;
+    document.getElementById('suggestion-content').textContent = suggestion.content;
+    
+    const priorityEl = document.getElementById('suggestion-priority');
+    priorityEl.textContent = `PRIORITY: ${suggestion.priority}`;
+    priorityEl.style.color = suggestion.priority === 'CRITICAL' ? '#f44' : 
+                               suggestion.priority === 'HIGH' ? '#ff9800' : '#4caf50';
+}
+
+function approveSuggestion() {
+    if (!currentSuggestion) return;
+    
+    addChatMessage(`✅ Executing AI suggestion: ${currentSuggestion.title}`, 'ai');
+    
+    fetch('/api/commander-override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: currentSuggestion.action,
+            params: currentSuggestion.params
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        addChatMessage(`✓ ${data.message}`, 'ai');
+        document.getElementById('suggestion-panel').style.display = 'none';
+        currentSuggestion = null;
+    })
+    .catch(error => {
+        addChatMessage(`✗ Action failed: ${error}`, 'critical');
+    });
+}
+
+function rejectSuggestion() {
+    if (!currentSuggestion) return;
+    addChatMessage(`✗ Rejected AI suggestion: ${currentSuggestion.title}`, 'user');
+    document.getElementById('suggestion-panel').style.display = 'none';
+    currentSuggestion = null;
+}
+
+function explainSuggestion() {
+    if (!currentSuggestion) return;
+    
+    const explanation = `
+        <div style="border-left: 3px solid #9c27b0; padding: 6px; background: rgba(156,39,176,0.05);">
+            <strong>Type:</strong> ${currentSuggestion.type}<br>
+            <strong>Action:</strong> ${currentSuggestion.action}<br>
+            <strong>Parameters:</strong> ${JSON.stringify(currentSuggestion.params, null, 2)}
+        </div>
+    `;
+    
+    const chatHistory = document.getElementById('chat-history');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message ai';
+    msgDiv.innerHTML = `<strong>💡 AI Explanation:</strong><br>${explanation}`;
+    chatHistory.appendChild(msgDiv);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+// ══════════════════════════════════════════════════════════
+// CHAT & MEMORY
+// ══════════════════════════════════════════════════════════
 
 function sendMessage() {
     const input = document.getElementById('user-input');
@@ -125,17 +274,16 @@ function sendMessage() {
     
     if (!message) return;
     
-    // Add user message to chat
     addChatMessage(message, 'user');
     
-    // Send to backend
     fetch('/api/ai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             message: message,
             room: 'room-4',
-            context: aiMemory
+            context: aiMemory,
+            include_8cv: true  // Request 8CV context
         })
     })
     .then(response => response.json())
@@ -166,56 +314,29 @@ function addChatMessage(text, type) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-message ${type}`;
     
-    const icon = type === 'user' ? '👤 YOU' : type === 'ai' ? '💡 AI' : '⚠️ SYSTEM';
+    const icon = type === 'user' ? '👤 YOU' : 
+                 type === 'pattern' ? '🔍 PATTERN' :
+                 type === 'critical' ? '🚨 ALERT' :
+                 type === 'ai' ? '💡 AI K9' : '⚠️ SYSTEM';
     msgDiv.innerHTML = `<strong>${icon}:</strong> ${escapeHtml(text)}`;
     
     chatHistory.appendChild(msgDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-function showSuggestion(suggestion) {
-    currentSuggestion = suggestion;
-    document.getElementById('suggestion-panel').style.display = 'block';
-    document.getElementById('suggestion-content').textContent = suggestion.content;
-}
-
-function approveSuggestion() {
-    if (!currentSuggestion) return;
-    
-    fetch('/api/ai-apply-suggestion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            suggestion: currentSuggestion,
-            approved: true
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        addChatMessage('✅ Suggestion applied: ' + data.message, 'ai');
-        document.getElementById('suggestion-panel').style.display = 'none';
-        currentSuggestion = null;
-    });
-}
-
-function rejectSuggestion() {
-    addChatMessage('✗ Suggestion rejected by user', 'ai');
-    document.getElementById('suggestion-panel').style.display = 'none';
-    currentSuggestion = null;
-}
-
-function explainSuggestion() {
-    if (!currentSuggestion) return;
-    
-    fetch('/api/ai-explain-suggestion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ suggestion: currentSuggestion })
-    })
-    .then(response => response.json())
-    .then(data => {
-        addChatMessage(data.explanation, 'ai');
-    });
+function view8CVHistory() {
+    fetch('/api/8cv-history')
+        .then(response => response.json())
+        .then(data => {
+            const history = data.history.slice(-10);  // Last 10 cycles
+            let summary = `📊 Last 10 cycles (of ${data.total_cycles} total):\n\n`;
+            history.forEach(h => {
+                summary += `Cycle ${h.cycle_id}: Health ${h.health_score}/50 (Top: ${h.top_loop}, Bottom: ${h.bottom_loop})`;
+                if (h.buzzkill_trigger) summary += ` [BUZZKILL: ${h.buzzkill_trigger}]`;
+                summary += '\n';
+            });
+            addChatMessage(summary, 'ai');
+        });
 }
 
 function viewNotes() {
@@ -255,26 +376,20 @@ function aiLogout() {
         .then(response => response.json())
         .then(data => {
             addChatMessage('🚪 AI logged out. Working memory wiped. Persistent notes saved.', 'ai');
-            document.getElementById('ai-status').textContent = '🔴 OFFLINE';
-            document.getElementById('ai-status').style.color = '#f44';
+            document.getElementById('chat-history').innerHTML = '';
+            aiMemory = { persistent: [], working: [] };
+            updateMemoryCount();
         });
 }
 
 function updateMemoryCount() {
+    document.getElementById('notes-count').textContent = aiMemory.persistent.length;
     document.getElementById('memory-count').textContent = aiMemory.working.length;
 }
 
-function loadAIMemory() {
-    fetch('/api/ai-notes?room=room-4')
-        .then(response => response.json())
-        .then(data => {
-            aiMemory.persistent = data.notes || [];
-            document.getElementById('notes-count').textContent = aiMemory.persistent.length;
-            
-            if (aiMemory.persistent.length > 0) {
-                addChatMessage(`Loaded ${aiMemory.persistent.length} notes from previous sessions`, 'ai');
-            }
-        });
+function updateSessionTime() {
+    const elapsed = Math.floor((Date.now() - sessionStartTime) / 60000);
+    document.getElementById('session-time').textContent = `${elapsed}m`;
 }
 
 function escapeHtml(text) {
@@ -283,29 +398,29 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Load AI memory on page load
-loadAIMemory();
+// Initialize
+update8CVStatus();
+updateSessionTime();
+setInterval(updateSessionTime, 60000);
 
-// Listen for terminal activity (observation mode)
-if (typeof connector !== 'undefined') {
-    connector.on('terminal_activity', (data) => {
-        // AI observes terminal commands
-        if (data.command && data.command.includes('edit') || data.command.includes('save')) {
-            fetch('/api/ai-observe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    activity: data.command,
-                    room: data.room
-                })
+// Observe terminal activity (if Room 3 is active)
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'terminal-activity') {
+        fetch('/api/ai-observe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                activity: event.data.command,
+                room: event.data.room || 'room-3'
             })
-            .then(response => response.json())
-            .then(result => {
-                if (result.suggestion) {
-                    showSuggestion(result.suggestion);
-                }
-            });
-        }
-    });
-}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.suggestion) {
+                addChatMessage(`👁️ Observed: ${event.data.command}`, 'ai');
+                showSuggestion(data.suggestion);
+            }
+        });
+    }
+});
 </script>

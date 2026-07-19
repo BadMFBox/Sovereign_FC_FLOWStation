@@ -29,3 +29,8 @@ commander.log
 # OS
 .DS_Store
 Thumbs.db
+debug_scripts/
+*.backup
+*.bak
+__pycache__/
+.env

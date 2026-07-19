@@ -80,3 +80,34 @@ class AIMemory:
 
 # Global AI memory instance
 ai_memory = AIMemory()
+
+# Import mock AI
+from ai_brain_mock import ai_brain
+
+def ai_chat_with_8cv(message, room, engine=None, optimizer=None):
+    """AI chat enhanced with 8CV awareness - uses mock brain for now"""
+    
+    # Get 8CV context
+    context_8cv = get_8cv_context(engine) if engine else {}
+    
+    # Get recent history
+    history = engine.get_health_history()[-10:] if engine else []
+    history_cycles = [
+        {
+            'gear': h.gear.name if hasattr(h, 'gear') else 'UNKNOWN',
+            'health': h.health_score,
+            'cycle': h.cycle_id[:16]
+        }
+        for h in history
+    ]
+    
+    # Use mock AI brain
+    result = ai_brain.chat(message, context_8cv=context_8cv, room=room)
+    
+    # Also check for proactive patterns
+    if not result.get('suggestion'):
+        patterns = ai_brain.detect_patterns(context_8cv, history_cycles)
+        if patterns:
+            result['suggestion'] = patterns[0]  # Top priority
+    
+    return result

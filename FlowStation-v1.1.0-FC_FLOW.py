@@ -1605,6 +1605,12 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
+        if self.path.startswith("/api/8cv-status"):
+            self._handle_8cv_status()
+            return
+        if self.path.startswith("/api/8cv-history"):
+            self._handle_8cv_history()
+            return
         if self.path.startswith("/api/ai-notes"):
             self._handle_ai_notes()
             return
@@ -1632,8 +1638,17 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
+        if self.path == "/api/ai-observe":
+            self._handle_ai_observe()
+            return
+        if self.path == "/api/commander-override":
+            self._handle_commander_override()
+            return
         if self.path == "/api/ai-chat":
             self._handle_ai_chat()
+            return
+        if self.path == "/api/ai-chat-gemini":
+            self._handle_ai_chat_gemini()
             return
         if self.path == "/api/ai-wipe-memory":
             self._handle_ai_wipe_memory()
@@ -2113,6 +2128,12 @@ def main():
 if __name__ == "__main__":
     main()
     def do_POST(self):
+        if self.path == "/api/ai-observe":
+            self._handle_ai_observe()
+            return
+        if self.path == "/api/commander-override":
+            self._handle_commander_override()
+            return
         if self.path == "/api/ai-chat":
             self._handle_ai_chat()
             return
@@ -2219,6 +2240,12 @@ if __name__ == "__main__":
             self.wfile.write(json.dumps(response).encode())
 
     def do_POST(self):
+        if self.path == "/api/ai-observe":
+            self._handle_ai_observe()
+            return
+        if self.path == "/api/commander-override":
+            self._handle_commander_override()
+            return
         if self.path == "/api/ai-chat":
             self._handle_ai_chat()
             return
@@ -2393,6 +2420,33 @@ if __name__ == "__main__":
             logger.error(f"AI notes error: {e}")
             self._send_json_error(str(e))
     
+    def _handle_ai_chat_gemini(self):
+        """Handle AI chat with Gemini"""
+        try:
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode("utf-8"))
+            message = data.get("message", "")
+            
+            from ai_brain_gemini_simple import init_gemini, ai_brain
+            if ai_brain is None:
+                import os
+                api_key = os.environ.get('GEMINI_API_KEY')
+                if api_key:
+                    init_gemini(api_key, "gemini-3.1-flash-lite")
+                else:
+                    raise ValueError("GEMINI_API_KEY not set")
+            
+            result = ai_brain.chat(message, use_cache=True)
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self._cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "success", "response": result["response"], "from_cache": result.get("from_cache", False)}).encode())
+        except Exception as e:
+            logger.error(f"Gemini error: {e}")
+            self._send_json_error(str(e))
+
     def _handle_ai_wipe_memory(self):
         """Wipe AI working memory"""
         try:
@@ -2466,3 +2520,266 @@ if __name__ == "__main__":
             'message': message
         }
         self.wfile.write(json.dumps(response).encode())
+
+    def _handle_8cv_status(self):
+        """Get live 8CV engine status for AI observation"""
+        try:
+            if not hasattr(self.server, 'engine'):
+                self._send_json_error("8CV engine not initialized")
+                return
+            
+            engine = self.server.engine
+            optimizer = self.server.optimizer if hasattr(self.server, 'optimizer') else None
+            
+            report = engine.get_health_report()
+            gear = engine.get_gear()
+            cycle_count = engine.get_cycle_count()
+            
+            status = {
+                'gear': gear.name,
+                'gear_value': gear.value,
+                'cycle': cycle_count,
+                'health': report.health_score if report else 0,
+                'top_loop': report.top_loop.value if report else 'UNKNOWN',
+                'bottom_loop': report.bottom_loop.value if report else 'UNKNOWN',
+                'failure_details': report.failure_details if report else '',
+                'optimizer_mode': optimizer.get_state().mode.value if optimizer else 'UNKNOWN',
+                'token_rate': optimizer.get_state().token_rate if optimizer else 0.0,
+                'connection_load': optimizer.get_state().connection_load if optimizer else 0,
+                'timestamp': time.time()
+            }
+            
+            # AI analyzes 8CV state and generates suggestions
+            suggestions = self._ai_analyze_8cv(engine, optimizer, report)
+            if suggestions:
+                status['ai_suggestion'] = suggestions[0]  # Top priority suggestion
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(status).encode())
+            
+        except Exception as e:
+            logger.error(f"8CV status error: {e}")
+            self._send_json_error(str(e))
+    
+    def _ai_analyze_8cv(self, engine, optimizer, report):
+        """AI analyzes 8CV state and generates proactive suggestions"""
+        suggestions = []
+        
+        if not report:
+            return suggestions
+        
+        gear = engine.get_gear()
+        cycle_count = engine.get_cycle_count()
+        opt_state = optimizer.get_state() if optimizer else None
+        
+        # Pattern 1: Stuck in Gear 3 with perfect health
+        if (gear == GearState.GEAR_3_UNDISPUTED and
+            report.health_score == 50 and
+            cycle_count > GRACE_CYCLES + 50):
+            suggestions.append({
+                'priority': 'HIGH',
+                'type': 'gear_optimization',
+                'title': 'Consider downshifting from Gear 3',
+                'content': f'System has been in UNDISPUTED mode for {cycle_count - GRACE_CYCLES} cycles with perfect health (50/50). This may indicate over-reaction. Suggest manual shift to Gear 2 to reduce token pressure.',
+                'action': 'shift_gear',
+                'params': {'target': 'GEAR_2_ACTIVE', 'reason': 'AI suggestion: health stable'}
+            })
+        
+        # Pattern 2: Crossover validation failures
+        if report.failure_details and 'Cross-val' in report.failure_details:
+            suggestions.append({
+                'priority': 'CRITICAL',
+                'type': 'topology_issue',
+                'title': 'Crossover validation failing',
+                'content': 'R3 (PassPatrol) crossover point showing inconsistency. This is the shared node between top and bottom loops. Possible causes: timing stress, key derivation anomaly, or R3 compromise. Suggest inspecting R3 room integrity.',
+                'action': 'inspect_room',
+                'params': {'room': 'room_3', 'component': 'crossover_validator'}
+            })
+        
+        # Pattern 3: Optimizer in SURGE mode
+        if opt_state and opt_state.mode == OptimizerMode.SURGE:
+            suggestions.append({
+                'priority': 'WARNING',
+                'type': 'performance',
+                'title': 'Token rate critical',
+                'content': f'Token push rate at {opt_state.token_rate:.1f}/s (SURGE mode). AI responses will be batched to prevent connection burnout. Consider reducing query frequency or shifting to Gear 1 Standby temporarily.',
+                'action': 'throttle_mode',
+                'params': {'mode': 'batch', 'window': 2.0}
+            })
+        
+        # Pattern 4: Single loop failure
+        if (report.top_loop == LoopStatus.FAILED or 
+            report.bottom_loop == LoopStatus.FAILED):
+            failed_loop = 'TOP' if report.top_loop == LoopStatus.FAILED else 'BOTTOM'
+            rooms = TOP_LOOP if failed_loop == 'TOP' else BOTTOM_LOOP
+            suggestions.append({
+                'priority': 'CRITICAL',
+                'type': 'loop_failure',
+                'title': f'{failed_loop} loop failure detected',
+                'content': f'{failed_loop} loop validation failed. Affected rooms: {", ".join(ROOMS[r] for r in rooms)}. Buzzkill likely imminent. Suggest immediate inspection of key derivation in these rooms.',
+                'action': 'inspect_loop',
+                'params': {'loop': failed_loop, 'rooms': rooms}
+            })
+        
+        # Pattern 5: Health score degrading
+        if 25 <= report.health_score < 40:
+            suggestions.append({
+                'priority': 'WARNING',
+                'type': 'health_degradation',
+                'title': 'Health score degrading',
+                'content': f'Current health: {report.health_score}/50. System approaching critical threshold (24/50). Top: {report.top_loop.value}, Bottom: {report.bottom_loop.value}. Buzzkill Tier 2 may trigger if degradation continues.',
+                'action': 'monitor',
+                'params': {'threshold': 24, 'current': report.health_score}
+            })
+        
+        return suggestions
+    
+    def _handle_ai_observe(self):
+        """Handle AI observation of terminal/code activity"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            activity = data.get('activity', '')
+            room = data.get('room', '')
+            
+            # AI analyzes activity for potential issues
+            suggestion = self._ai_analyze_activity(activity, room)
+            
+            # Log observation
+            from ai_memory import ai_memory
+            ai_memory.add_note(
+                f"Observed: {activity} in {room}",
+                note_type="observation",
+                persistent=False
+            )
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            result = {
+                'status': 'observed',
+                'suggestion': suggestion
+            }
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            logger.error(f"AI observe error: {e}")
+            self._send_json_error(str(e))
+    
+    def _ai_analyze_activity(self, activity, room):
+        """AI analyzes user activity and suggests improvements"""
+        activity_lower = activity.lower()
+        
+        # Pattern detection
+        if 'edit' in activity_lower and 'room_3' in room:
+            return {
+                'priority': 'INFO',
+                'type': 'safety_check',
+                'content': 'Editing R3 (PassPatrol) - the crossover node. Changes here affect both top and bottom 8CV loops. Suggest testing crossover validation after edits.',
+                'action': 'suggest_test'
+            }
+        
+        if 'save' in activity_lower and any(r in room for r in ['room_0', 'room_2']):
+            return {
+                'priority': 'INFO',
+                'type': 'critical_room',
+                'content': f'Modifying {ROOMS.get(room, room)} - a critical 8CV component. Recommend creating logic lock after testing.',
+                'action': 'suggest_lock'
+            }
+        
+        return None
+    
+    def _handle_8cv_history(self):
+        """Get 8CV health history for analysis"""
+        try:
+            if not hasattr(self.server, 'engine'):
+                self._send_json_error("8CV engine not initialized")
+                return
+            
+            engine = self.server.engine
+            history = engine.get_health_history()
+            
+            # Convert to JSON-serializable format
+            history_data = []
+            for report in history[-50:]:  # Last 50 reports
+                history_data.append({
+                    'timestamp': report.timestamp,
+                    'cycle_id': report.cycle_id[:16],
+                    'health_score': report.health_score,
+                    'top_loop': report.top_loop.value,
+                    'bottom_loop': report.bottom_loop.value,
+                    'buzzkill_trigger': report.buzzkill_trigger.name if report.buzzkill_trigger else None,
+                    'failure_details': report.failure_details
+                })
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'status': 'success',
+                'history': history_data,
+                'total_cycles': engine.get_cycle_count()
+            }).encode())
+            
+        except Exception as e:
+            logger.error(f"8CV history error: {e}")
+            self._send_json_error(str(e))
+    
+    def _handle_commander_override(self):
+        """Execute commander override (AI-suggested actions, user-approved)"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            action = data.get('action')
+            params = data.get('params', {})
+            
+            if not hasattr(self.server, 'commander'):
+                self._send_json_error("Commander not initialized")
+                return
+            
+            commander = self.server.commander
+            
+            # Execute approved action
+            if action == 'shift_gear':
+                target_gear = GearState[params.get('target', 'GEAR_2_ACTIVE')]
+                reason = params.get('reason', 'User-approved AI suggestion')
+                commander.issue_override('GEAR_SHIFT', {'target': target_gear.name})
+                message = f"Gear shift to {target_gear.name} queued"
+                
+            elif action == 'inspect_room':
+                room = params.get('room')
+                message = f"Inspection of {ROOMS.get(room, room)} recommended. Manual review required."
+                
+            elif action == 'throttle_mode':
+                message = "AI will batch responses for next 60 seconds"
+                
+            else:
+                message = f"Action {action} acknowledged"
+            
+            # Log to AI memory
+            from ai_memory import ai_memory
+            ai_memory.add_note(
+                f"User approved AI action: {action} with params {params}",
+                note_type="action",
+                persistent=True
+            )
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'status': 'success',
+                'message': message,
+                'action': action
+            }).encode())
+            
+        except Exception as e:
+            logger.error(f"Commander override error: {e}")
+            self._send_json_error(str(e))
+
