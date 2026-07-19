@@ -1604,6 +1604,21 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass
 
+
+    def _handle_ai_notes(self):
+        import json
+        try:
+            notes = {"notes": [], "status": "ok"}
+            body = json.dumps(notes).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception:
+            self.send_response(500)
+            self.end_headers()
+
     def do_GET(self):
         if self.path.startswith("/api/8cv-status"):
             self._handle_8cv_status()
@@ -1768,6 +1783,80 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
 
 
 
+
+
+    def _handle_ai_notes(self):
+        """AI notes — sovereign session memory bank."""
+        import json
+        import os
+
+        ai_name = self.path.split("/")[-1] if "/" in self.path else "unknown"
+        notes_path = os.path.join("ai_feeds", f"{ai_name}_notes.json")
+
+        try:
+            if os.path.exists(notes_path):
+                with open(notes_path, "r") as f:
+                    notes = json.load(f)
+            else:
+                notes = {
+                    "agent":    ai_name,
+                    "entries":  [],
+                    "last_seen": None
+                }
+
+            body = json.dumps(notes).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+
+    def _handle_ai_notes_write(self):
+        """AI writes a note to its memory bank."""
+        import json
+        import os
+        from datetime import datetime
+
+        ai_name = self.path.split("/")[-1] if "/" in self.path else "unknown"
+        notes_path = os.path.join("ai_feeds", f"{ai_name}_notes.json")
+
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            new_entry = json.loads(body)
+
+            if os.path.exists(notes_path):
+                with open(notes_path, "r") as f:
+                    notes = json.load(f)
+            else:
+                notes = {"agent": ai_name, "entries": [], "last_seen": None}
+
+            notes["entries"].append({
+                "ts":    datetime.now().isoformat(),
+                "note":  new_entry.get("note", ""),
+                "tag":   new_entry.get("tag", "general")
+            })
+            notes["last_seen"] = datetime.now().isoformat()
+
+            # Keep last 100 notes — old ones drop off
+            if len(notes["entries"]) > 100:
+                notes["entries"] = notes["entries"][-100:]
+
+            with open(notes_path, "w") as f:
+                json.dump(notes, f, indent=2)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status":"saved"}')
+
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
 
 def build_html() -> str:
     return """<!DOCTYPE html>
@@ -2127,659 +2216,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    def do_POST(self):
-        if self.path == "/api/ai-observe":
-            self._handle_ai_observe()
-            return
-        if self.path == "/api/commander-override":
-            self._handle_commander_override()
-            return
-        if self.path == "/api/ai-chat":
-            self._handle_ai_chat()
-            return
-        if self.path == "/api/ai-wipe-memory":
-            self._handle_ai_wipe_memory()
-            return
-        if self.path == "/api/ai-logout":
-            self._handle_ai_logout()
-            return
-        """Handle POST requests for file operations"""
-        if self.path == '/api/save-to-room':
-            self._handle_save_to_room()
-        else:
-            self.send_error(404, "Endpoint not found")
-    
-    def _handle_save_to_room(self):
-        """Save uploaded file to room directory"""
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            room = data.get('room', 'room-2')
-            filename = data.get('filename', 'untitled.py')
-            content = data.get('content', '')
-            
-            # Sanitize room and filename
-            room = room.replace('..', '').replace('/', '')
-            filename = filename.replace('..', '').replace('/', '')
-            
-            # Create room directory if it doesn't exist
-            room_path = Path(f'forge/active/{room}')
-            room_path.mkdir(parents=True, exist_ok=True)
-            
-            # Save file
-            file_path = room_path / filename
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            
-            logger.info(f"💾 Saved {filename} to {room}")
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'success',
-                'message': f'Saved {filename} to {room}',
-                'path': str(file_path)
-            }
-            self.wfile.write(json.dumps(response).encode())
-            
-        except Exception as e:
-            logger.error(f"Save error: {e}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'error',
-                'message': str(e)
-            }
-            self.wfile.write(json.dumps(response).encode())
-    
-    def _handle_load_from_room(self):
-        """Load files from room directory"""
-        try:
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            room = query.get('room', ['room-2'])[0]
-            
-            # Sanitize room
-            room = room.replace('..', '').replace('/', '')
-            
-            room_path = Path(f'forge/active/{room}')
-            files = []
-            
-            if room_path.exists() and room_path.is_dir():
-                for file_path in room_path.glob('*.py'):
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    files.append({
-                        'name': file_path.name,
-                        'content': content,
-                        'timestamp': datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
-                    })
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'success',
-                'files': files,
-                'room': room
-            }
-            self.wfile.write(json.dumps(response).encode())
-            
-        except Exception as e:
-            logger.error(f"Load error: {e}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'error',
-                'message': str(e)
-            }
-            self.wfile.write(json.dumps(response).encode())
-
-    def do_POST(self):
-        if self.path == "/api/ai-observe":
-            self._handle_ai_observe()
-            return
-        if self.path == "/api/commander-override":
-            self._handle_commander_override()
-            return
-        if self.path == "/api/ai-chat":
-            self._handle_ai_chat()
-            return
-        if self.path == "/api/ai-wipe-memory":
-            self._handle_ai_wipe_memory()
-            return
-        if self.path == "/api/ai-logout":
-            self._handle_ai_logout()
-            return
-        """Handle POST requests for file operations"""
-        if self.path == '/api/save-to-room':
-            self._handle_save_to_room()
-        else:
-            self.send_error(404, "Endpoint not found")
-    
-    def _handle_save_to_room(self):
-        """Save uploaded file to room directory"""
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            room = data.get('room', 'room-2')
-            filename = data.get('filename', 'untitled.py')
-            content = data.get('content', '')
-            
-            # Sanitize room and filename
-            room = room.replace('..', '').replace('/', '')
-            filename = filename.replace('..', '').replace('/', '')
-            
-            # Create room directory if it doesn't exist
-            room_path = Path(f'forge/active/{room}')
-            room_path.mkdir(parents=True, exist_ok=True)
-            
-            # Save file
-            file_path = room_path / filename
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            
-            logger.info(f"💾 Saved {filename} to {room}")
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'success',
-                'message': f'Saved {filename} to {room}',
-                'path': str(file_path)
-            }
-            self.wfile.write(json.dumps(response).encode())
-            
-        except Exception as e:
-            logger.error(f"Save error: {e}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'error',
-                'message': str(e)
-            }
-            self.wfile.write(json.dumps(response).encode())
-    
-    def _handle_load_from_room(self):
-        """Load files from room directory"""
-        try:
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            room = query.get('room', ['room-2'])[0]
-            
-            # Sanitize room
-            room = room.replace('..', '').replace('/', '')
-            
-            room_path = Path(f'forge/active/{room}')
-            files = []
-            
-            if room_path.exists() and room_path.is_dir():
-                for file_path in room_path.glob('*.py'):
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    files.append({
-                        'name': file_path.name,
-                        'content': content,
-                        'timestamp': datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
-                    })
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'success',
-                'files': files,
-                'room': room
-            }
-            self.wfile.write(json.dumps(response).encode())
-            
-        except Exception as e:
-            logger.error(f"Load error: {e}")
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'error',
-                'message': str(e)
-            }
-            self.wfile.write(json.dumps(response).encode())
-
-    def _handle_ai_chat(self):
-        """Handle AI chat messages"""
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            message = data.get('message', '')
-            
-            # Simple AI response logic (can be enhanced with real AI later)
-            response = self._generate_ai_response(message)
-            
-            # Add note to memory
-            from ai_memory import ai_memory
-            ai_memory.add_note(f"User asked: {message}", "conversation", persistent=False)
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            result = {
-                'status': 'success',
-                'response': response
-            }
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            logger.error(f"AI chat error: {e}")
-            self._send_json_error(str(e))
-    
-    def _generate_ai_response(self, message):
-        """Generate AI response (basic logic, can be enhanced)"""
-        message_lower = message.lower()
-        
-        if 'help' in message_lower or 'what can you do' in message_lower:
-            return "I'm your AI partner. I watch your code, suggest improvements, and keep notes. I cannot edit without your approval. Ask me about files, locks, or your project structure."
-        
-        elif 'lock' in message_lower:
-            return "Logic locks protect your code. When locked, I cannot modify it. Only you can unlock modules."
-        
-        elif 'note' in message_lower:
-            return "I keep two types of memory: persistent notes (survive logout) and working memory (wiped on logout). Use 'View Notes' to see them."
-        
-        elif 'file' in message_lower or 'room' in message_lower:
-            return "I'm observing your file operations. If I notice potential issues, I'll suggest improvements. You decide whether to apply them."
-        
-        else:
-            return f"Understood. I'll keep that in mind while assisting you."
-    
-    def _handle_ai_notes(self):
-        """Get AI notes"""
-        try:
-            from ai_memory import ai_memory
-            notes = ai_memory.get_notes()
-            context = ai_memory.get_context_summary()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            result = {
-                'status': 'success',
-                'notes': notes,
-                'context': context
-            }
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            logger.error(f"AI notes error: {e}")
-            self._send_json_error(str(e))
-    
-    def _handle_ai_chat_gemini(self):
-        """Handle AI chat with Gemini"""
-        try:
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode("utf-8"))
-            message = data.get("message", "")
-            
-            from ai_brain_gemini_simple import init_gemini, ai_brain
-            if ai_brain is None:
-                import os
-                api_key = os.environ.get('GEMINI_API_KEY')
-                if api_key:
-                    init_gemini(api_key, "gemini-3.1-flash-lite")
-                else:
-                    raise ValueError("GEMINI_API_KEY not set")
-            
-            result = ai_brain.chat(message, use_cache=True)
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self._cors_headers()
-            self.end_headers()
-            self.wfile.write(json.dumps({"status": "success", "response": result["response"], "from_cache": result.get("from_cache", False)}).encode())
-        except Exception as e:
-            logger.error(f"Gemini error: {e}")
-            self._send_json_error(str(e))
-
-    def _handle_ai_wipe_memory(self):
-        """Wipe AI working memory"""
-        try:
-            from ai_memory import ai_memory
-            count = ai_memory.wipe_working_memory()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            result = {
-                'status': 'success',
-                'count': count
-            }
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            logger.error(f"AI wipe error: {e}")
-            self._send_json_error(str(e))
-    
-    def _handle_ai_logout(self):
-        """AI logout - wipe working memory, save persistent notes"""
-        try:
-            from ai_memory import ai_memory
-            count = ai_memory.wipe_working_memory()
-            
-            logger.info("🚪 AI logged out, working memory wiped")
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            result = {
-                'status': 'success',
-                'message': f'AI logged out. {count} working memory entries wiped.',
-                'persistent_notes': len(ai_memory.persistent_notes)
-            }
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            logger.error(f"AI logout error: {e}")
-            self._send_json_error(str(e))
-    
-    def _handle_ai_locks(self):
-        """Get locked modules"""
-        try:
-            locks_dir = Path('forge/signatures')
-            locks = []
-            
-            if locks_dir.exists():
-                locks = [f.stem for f in locks_dir.glob('*.sig')]
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            result = {
-                'status': 'success',
-                'locks': locks
-            }
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            logger.error(f"AI locks error: {e}")
-            self._send_json_error(str(e))
-    
-    def _send_json_error(self, message):
-        """Send JSON error response"""
-        self.send_response(500)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        response = {
-            'status': 'error',
-            'message': message
-        }
-        self.wfile.write(json.dumps(response).encode())
-
-    def _handle_8cv_status(self):
-        """Get live 8CV engine status for AI observation"""
-        try:
-            if not hasattr(self.server, 'engine'):
-                self._send_json_error("8CV engine not initialized")
-                return
-            
-            engine = self.server.engine
-            optimizer = self.server.optimizer if hasattr(self.server, 'optimizer') else None
-            
-            report = engine.get_health_report()
-            gear = engine.get_gear()
-            cycle_count = engine.get_cycle_count()
-            
-            status = {
-                'gear': gear.name,
-                'gear_value': gear.value,
-                'cycle': cycle_count,
-                'health': report.health_score if report else 0,
-                'top_loop': report.top_loop.value if report else 'UNKNOWN',
-                'bottom_loop': report.bottom_loop.value if report else 'UNKNOWN',
-                'failure_details': report.failure_details if report else '',
-                'optimizer_mode': optimizer.get_state().mode.value if optimizer else 'UNKNOWN',
-                'token_rate': optimizer.get_state().token_rate if optimizer else 0.0,
-                'connection_load': optimizer.get_state().connection_load if optimizer else 0,
-                'timestamp': time.time()
-            }
-            
-            # AI analyzes 8CV state and generates suggestions
-            suggestions = self._ai_analyze_8cv(engine, optimizer, report)
-            if suggestions:
-                status['ai_suggestion'] = suggestions[0]  # Top priority suggestion
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(status).encode())
-            
-        except Exception as e:
-            logger.error(f"8CV status error: {e}")
-            self._send_json_error(str(e))
-    
-    def _ai_analyze_8cv(self, engine, optimizer, report):
-        """AI analyzes 8CV state and generates proactive suggestions"""
-        suggestions = []
-        
-        if not report:
-            return suggestions
-        
-        gear = engine.get_gear()
-        cycle_count = engine.get_cycle_count()
-        opt_state = optimizer.get_state() if optimizer else None
-        
-        # Pattern 1: Stuck in Gear 3 with perfect health
-        if (gear == GearState.GEAR_3_UNDISPUTED and
-            report.health_score == 50 and
-            cycle_count > GRACE_CYCLES + 50):
-            suggestions.append({
-                'priority': 'HIGH',
-                'type': 'gear_optimization',
-                'title': 'Consider downshifting from Gear 3',
-                'content': f'System has been in UNDISPUTED mode for {cycle_count - GRACE_CYCLES} cycles with perfect health (50/50). This may indicate over-reaction. Suggest manual shift to Gear 2 to reduce token pressure.',
-                'action': 'shift_gear',
-                'params': {'target': 'GEAR_2_ACTIVE', 'reason': 'AI suggestion: health stable'}
-            })
-        
-        # Pattern 2: Crossover validation failures
-        if report.failure_details and 'Cross-val' in report.failure_details:
-            suggestions.append({
-                'priority': 'CRITICAL',
-                'type': 'topology_issue',
-                'title': 'Crossover validation failing',
-                'content': 'R3 (PassPatrol) crossover point showing inconsistency. This is the shared node between top and bottom loops. Possible causes: timing stress, key derivation anomaly, or R3 compromise. Suggest inspecting R3 room integrity.',
-                'action': 'inspect_room',
-                'params': {'room': 'room_3', 'component': 'crossover_validator'}
-            })
-        
-        # Pattern 3: Optimizer in SURGE mode
-        if opt_state and opt_state.mode == OptimizerMode.SURGE:
-            suggestions.append({
-                'priority': 'WARNING',
-                'type': 'performance',
-                'title': 'Token rate critical',
-                'content': f'Token push rate at {opt_state.token_rate:.1f}/s (SURGE mode). AI responses will be batched to prevent connection burnout. Consider reducing query frequency or shifting to Gear 1 Standby temporarily.',
-                'action': 'throttle_mode',
-                'params': {'mode': 'batch', 'window': 2.0}
-            })
-        
-        # Pattern 4: Single loop failure
-        if (report.top_loop == LoopStatus.FAILED or 
-            report.bottom_loop == LoopStatus.FAILED):
-            failed_loop = 'TOP' if report.top_loop == LoopStatus.FAILED else 'BOTTOM'
-            rooms = TOP_LOOP if failed_loop == 'TOP' else BOTTOM_LOOP
-            suggestions.append({
-                'priority': 'CRITICAL',
-                'type': 'loop_failure',
-                'title': f'{failed_loop} loop failure detected',
-                'content': f'{failed_loop} loop validation failed. Affected rooms: {", ".join(ROOMS[r] for r in rooms)}. Buzzkill likely imminent. Suggest immediate inspection of key derivation in these rooms.',
-                'action': 'inspect_loop',
-                'params': {'loop': failed_loop, 'rooms': rooms}
-            })
-        
-        # Pattern 5: Health score degrading
-        if 25 <= report.health_score < 40:
-            suggestions.append({
-                'priority': 'WARNING',
-                'type': 'health_degradation',
-                'title': 'Health score degrading',
-                'content': f'Current health: {report.health_score}/50. System approaching critical threshold (24/50). Top: {report.top_loop.value}, Bottom: {report.bottom_loop.value}. Buzzkill Tier 2 may trigger if degradation continues.',
-                'action': 'monitor',
-                'params': {'threshold': 24, 'current': report.health_score}
-            })
-        
-        return suggestions
-    
-    def _handle_ai_observe(self):
-        """Handle AI observation of terminal/code activity"""
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            activity = data.get('activity', '')
-            room = data.get('room', '')
-            
-            # AI analyzes activity for potential issues
-            suggestion = self._ai_analyze_activity(activity, room)
-            
-            # Log observation
-            from ai_memory import ai_memory
-            ai_memory.add_note(
-                f"Observed: {activity} in {room}",
-                note_type="observation",
-                persistent=False
-            )
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            result = {
-                'status': 'observed',
-                'suggestion': suggestion
-            }
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            logger.error(f"AI observe error: {e}")
-            self._send_json_error(str(e))
-    
-    def _ai_analyze_activity(self, activity, room):
-        """AI analyzes user activity and suggests improvements"""
-        activity_lower = activity.lower()
-        
-        # Pattern detection
-        if 'edit' in activity_lower and 'room_3' in room:
-            return {
-                'priority': 'INFO',
-                'type': 'safety_check',
-                'content': 'Editing R3 (PassPatrol) - the crossover node. Changes here affect both top and bottom 8CV loops. Suggest testing crossover validation after edits.',
-                'action': 'suggest_test'
-            }
-        
-        if 'save' in activity_lower and any(r in room for r in ['room_0', 'room_2']):
-            return {
-                'priority': 'INFO',
-                'type': 'critical_room',
-                'content': f'Modifying {ROOMS.get(room, room)} - a critical 8CV component. Recommend creating logic lock after testing.',
-                'action': 'suggest_lock'
-            }
-        
-        return None
-    
-    def _handle_8cv_history(self):
-        """Get 8CV health history for analysis"""
-        try:
-            if not hasattr(self.server, 'engine'):
-                self._send_json_error("8CV engine not initialized")
-                return
-            
-            engine = self.server.engine
-            history = engine.get_health_history()
-            
-            # Convert to JSON-serializable format
-            history_data = []
-            for report in history[-50:]:  # Last 50 reports
-                history_data.append({
-                    'timestamp': report.timestamp,
-                    'cycle_id': report.cycle_id[:16],
-                    'health_score': report.health_score,
-                    'top_loop': report.top_loop.value,
-                    'bottom_loop': report.bottom_loop.value,
-                    'buzzkill_trigger': report.buzzkill_trigger.name if report.buzzkill_trigger else None,
-                    'failure_details': report.failure_details
-                })
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'status': 'success',
-                'history': history_data,
-                'total_cycles': engine.get_cycle_count()
-            }).encode())
-            
-        except Exception as e:
-            logger.error(f"8CV history error: {e}")
-            self._send_json_error(str(e))
-    
-    def _handle_commander_override(self):
-        """Execute commander override (AI-suggested actions, user-approved)"""
-        try:
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            action = data.get('action')
-            params = data.get('params', {})
-            
-            if not hasattr(self.server, 'commander'):
-                self._send_json_error("Commander not initialized")
-                return
-            
-            commander = self.server.commander
-            
-            # Execute approved action
-            if action == 'shift_gear':
-                target_gear = GearState[params.get('target', 'GEAR_2_ACTIVE')]
-                reason = params.get('reason', 'User-approved AI suggestion')
-                commander.issue_override('GEAR_SHIFT', {'target': target_gear.name})
-                message = f"Gear shift to {target_gear.name} queued"
-                
-            elif action == 'inspect_room':
-                room = params.get('room')
-                message = f"Inspection of {ROOMS.get(room, room)} recommended. Manual review required."
-                
-            elif action == 'throttle_mode':
-                message = "AI will batch responses for next 60 seconds"
-                
-            else:
-                message = f"Action {action} acknowledged"
-            
-            # Log to AI memory
-            from ai_memory import ai_memory
-            ai_memory.add_note(
-                f"User approved AI action: {action} with params {params}",
-                note_type="action",
-                persistent=True
-            )
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'status': 'success',
-                'message': message,
-                'action': action
-            }).encode())
-            
-        except Exception as e:
-            logger.error(f"Commander override error: {e}")
-            self._send_json_error(str(e))
-
