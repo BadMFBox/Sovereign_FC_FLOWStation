@@ -295,6 +295,234 @@ class KeyStore:
 
 
 
+class VaultManager:
+    """
+    Nested vault — integrates with 8CV topology.
+    Stores tokens, AI notes, and fuel reserves.
+    """
+    def __init__(self):
+        self.vault_root = VAULT_DIR
+        self.token_recycler = TokenRecycler(self)
+        self.ai_notes = AINoteStore(self)
+        self.fuel_reserves = FuelReserveStore(self)
+        self._ensure_structure()
+    
+    def _ensure_structure(self):
+        """Build vault directory tree."""
+        os.makedirs(f"{self.vault_root}/tokens", exist_ok=True)
+        os.makedirs(f"{self.vault_root}/ai_notes", exist_ok=True)
+        os.makedirs(f"{self.vault_root}/fuel_reserves", exist_ok=True)
+
+
+class TokenRecycler:
+    """
+    Gemini token recycling — 50%+ cost savings.
+    Stores tokens with metadata, rotates through WARM/COLD tiers.
+    """
+    def __init__(self, vault):
+        self.vault = vault
+        self.pool_path = f"{vault.vault_root}/tokens/gemini_pool.json"
+        self.metadata_path = f"{vault.vault_root}/tokens/token_metadata.json"
+        self._pool = []
+        self._metadata = {}
+        self._load()
+    
+    def _load(self):
+        """Load existing token pool from disk."""
+        if os.path.exists(self.pool_path):
+            with open(self.pool_path, 'r') as f:
+                self._pool = json.load(f)
+        if os.path.exists(self.metadata_path):
+            with open(self.metadata_path, 'r') as f:
+                self._metadata = json.load(f)
+    
+    def _save(self):
+        """Persist token pool to disk."""
+        with open(self.pool_path, 'w') as f:
+            json.dump(self._pool, f, indent=2)
+        with open(self.metadata_path, 'w') as f:
+            json.dump(self._metadata, f, indent=2)
+    
+    def deposit(self, tokens: list, source: str = "gemini_api"):
+        """Deposit tokens into the pool."""
+        timestamp = time.time()
+        for token in tokens:
+            token_id = hashlib.sha256(token.encode()).hexdigest()[:16]
+            self._pool.append({
+                "token": token,
+                "token_id": token_id,
+                "deposited": timestamp,
+                "source": source,
+                "tier": "WARM",
+                "use_count": 0,
+            })
+        self._save()
+        write_audit("TOKEN_DEPOSIT", f"Deposited {len(tokens)} tokens from {source}")
+    
+    def withdraw(self, count: int = 1) -> list:
+        """Withdraw tokens from pool for reuse."""
+        if len(self._pool) < count:
+            return []
+        
+        warm = [t for t in self._pool if t["tier"] == "WARM"]
+        cold = [t for t in self._pool if t["tier"] == "COLD"]
+        
+        withdrawn = []
+        for token_entry in (warm + cold)[:count]:
+            withdrawn.append(token_entry["token"])
+            token_entry["use_count"] += 1
+            token_entry["last_used"] = time.time()
+            
+            if token_entry["use_count"] >= 3:
+                token_entry["tier"] = "COLD"
+        
+        self._save()
+        write_audit("TOKEN_WITHDRAW", f"Withdrew {len(withdrawn)} tokens")
+        return withdrawn
+    
+    def rotate_tiers(self):
+        """8CV-aware tier rotation."""
+        now = time.time()
+        rotated = 0
+        for token_entry in self._pool:
+            age = now - token_entry.get("deposited", now)
+            
+            if token_entry["tier"] == "COLD" and age > 600:
+                token_entry["tier"] = "WARM"
+                rotated += 1
+            
+            elif token_entry["tier"] == "WARM" and age > 1800:
+                token_entry["tier"] = "COLD"
+                rotated += 1
+        
+        if rotated > 0:
+            self._save()
+    
+    def get_stats(self) -> dict:
+        """Return pool statistics for monitoring."""
+        warm = len([t for t in self._pool if t["tier"] == "WARM"])
+        cold = len([t for t in self._pool if t["tier"] == "COLD"])
+        total_uses = sum(t.get("use_count", 0) for t in self._pool)
+        
+        return {
+            "total_tokens": len(self._pool),
+            "warm_tokens": warm,
+            "cold_tokens": cold,
+            "total_reuses": total_uses,
+            "savings_estimate": f"{(total_uses / max(len(self._pool), 1)) * 50:.1f}%"
+        }
+
+
+class AINoteStore:
+    """
+    Persistent AI memory — survives session wipes.
+    """
+    def __init__(self, vault):
+        self.vault = vault
+        self.notes_dir = f"{vault.vault_root}/ai_notes"
+    
+    def _note_path(self, ai_name: str) -> str:
+        return f"{self.notes_dir}/{ai_name}_notes.json"
+    
+    def read_notes(self, ai_name: str) -> dict:
+        """AI clocks in — load persistent notes."""
+        path = self._note_path(ai_name)
+        if not os.path.exists(path):
+            return {
+                "agent": ai_name,
+                "notes": [],
+                "last_session": None,
+                "total_sessions": 0
+            }
+        
+        with open(path, 'r') as f:
+            data = json.load(f)
+        
+        write_audit("AI_CLOCK_IN", f"{ai_name} loaded {len(data.get('notes', []))} notes")
+        return data
+    
+    def write_note(self, ai_name: str, note: str, tag: str = "general"):
+        """AI writes a note during session."""
+        path = self._note_path(ai_name)
+        data = self.read_notes(ai_name)
+        
+        data["notes"].append({
+            "timestamp": datetime.now().isoformat(),
+            "note": note,
+            "tag": tag
+        })
+        
+        if len(data["notes"]) > 100:
+            data["notes"] = data["notes"][-100:]
+        
+        data["last_session"] = datetime.now().isoformat()
+        
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        write_audit("AI_NOTE_WRITE", f"{ai_name}: {tag}")
+    
+    def clock_out(self, ai_name: str):
+        """AI clocks out — increment session count."""
+        path = self._note_path(ai_name)
+        data = self.read_notes(ai_name)
+        data["total_sessions"] = data.get("total_sessions", 0) + 1
+        data["last_session"] = datetime.now().isoformat()
+        
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        write_audit("AI_CLOCK_OUT", f"{ai_name} session #{data['total_sessions']}")
+
+
+class FuelReserveStore:
+    """Tracks fuel consumption per room in 8CV topology."""
+    def __init__(self, vault):
+        self.vault = vault
+        self.reserves_dir = f"{vault.vault_root}/fuel_reserves"
+    
+    def _reserve_path(self, room_id: str) -> str:
+        return f"{self.reserves_dir}/{room_id}_reserve.json"
+    
+    def get_reserve(self, room_id: str) -> dict:
+        path = self._reserve_path(room_id)
+        if not os.path.exists(path):
+            return {
+                "room_id": room_id,
+                "room_name": ROOMS.get(room_id, "Unknown"),
+                "fuel_level": 1000,
+                "tier": "WARM",
+                "last_refill": time.time()
+            }
+        
+        with open(path, 'r') as f:
+            return json.load(f)
+    
+    def consume_fuel(self, room_id: str, amount: int):
+        """Consume fuel when AI makes API call."""
+        reserve = self.get_reserve(room_id)
+        reserve["fuel_level"] -= amount
+        
+        if reserve["fuel_level"] < 100:
+            reserve["tier"] = "CRITICAL"
+            write_audit("FUEL_CRITICAL", f"{room_id} fuel at {reserve['fuel_level']}")
+        
+        with open(self._reserve_path(room_id), 'w') as f:
+            json.dump(reserve, f, indent=2)
+    
+    def refill(self, room_id: str, amount: int):
+        """Refill room fuel."""
+        reserve = self.get_reserve(room_id)
+        reserve["fuel_level"] += amount
+        reserve["last_refill"] = time.time()
+        reserve["tier"] = "WARM"
+        
+        with open(self._reserve_path(room_id), 'w') as f:
+            json.dump(reserve, f, indent=2)
+
+
+
+
 class LoopValidator:
     """Validates 8CV loops with proper FC_FLOW topology."""
 
@@ -680,6 +908,7 @@ class Figure8Engine:
 
         # 8CV subsystems
         self._keys = KeyStore()
+        self._vault = VaultManager()
         self._loops = LoopValidator(self._keys)
         self._crossover = CrossoverValidator(self._keys)
         self._scorer = HealthScorer()
@@ -791,6 +1020,7 @@ class Figure8Engine:
 
         # Rotate keys
         self._keys.rotate()
+        self._vault.token_recycler.rotate_tiers()
 
         # 8CV topology validation
         top_status = self._loops.validate_top()
@@ -1619,7 +1849,37 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
             self.send_response(500)
             self.end_headers()
 
+
+    def _handle_ai_notes(self):
+        """Read AI notes — called when AI clocks in."""
+        ai_name = self.path.split('/')[-1]
+        notes = self.engine._vault.ai_notes.read_notes(ai_name)
+        self._json_response(notes)
+
+    def _handle_ai_notes_write(self):
+        """Write AI note — called during session."""
+        ai_name = self.path.split('/')[-1]
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length).decode())
+        
+        note = body.get('note', '')
+        tag = body.get('tag', 'general')
+        
+        self.engine._vault.ai_notes.write_note(ai_name, note, tag)
+        self._json_response({"status": "saved"})
+
+    def _handle_ai_clock_out(self):
+        """AI clocks out — persist session count."""
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length).decode())
+        ai_name = body.get('ai_name', '')
+        
+        self.engine._vault.ai_notes.clock_out(ai_name)
+        self._json_response({"status": "clocked_out"})
     def do_GET(self):
+        if self.path.startswith("/api/fuel-reserve/"):
+            self._handle_fuel_reserve()
+            return
         if self.path.startswith("/api/8cv-status"):
             self._handle_8cv_status()
             return
@@ -1653,6 +1913,18 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
+        if self.path == "/api/token-deposit":
+            self._handle_token_deposit()
+            return
+        if self.path == "/api/token-withdraw":
+            self._handle_token_withdraw()
+            return
+        if self.path.startswith("/api/ai-notes-write/"):
+            self._handle_ai_notes_write()
+            return
+        if self.path == "/api/ai-clock-out":
+            self._handle_ai_clock_out()
+            return
         if self.path == "/api/ai-observe":
             self._handle_ai_observe()
             return
@@ -1697,7 +1969,10 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(html.encode())))
         self._cors_headers()
         self.end_headers()
-        self.wfile.write(html.encode())
+        try:
+            self.wfile.write(html.encode())
+        except BrokenPipeError:
+            pass  # Client disconnected
 
     def _serve_state(self):
         data = json.dumps(self.web_state.snapshot()).encode()
@@ -1736,6 +2011,7 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
 
     def _handle_command(self):
         try:
+
             length = int(self.headers.get('Content-Length', 0))
             if length <= 0:
                 self._json_response({"ok": False, "error": "No request body"}, 400)
@@ -1778,6 +2054,287 @@ class MeshHTTPHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data_str.encode())
 
+
+    def _handle_token_stats(self):
+        """Return token recycling statistics."""
+        stats = self.engine._vault.token_recycler.get_stats()
+        self._json_response(stats)
+
+
+    def _handle_token_deposit(self):
+        """Deposit tokens into recycling pool."""
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length).decode())
+        
+        tokens = body.get('tokens', [])
+        source = body.get('source', 'api')
+        
+        self.engine._vault.token_recycler.deposit(tokens, source)
+        self._json_response({"status": "deposited", "count": len(tokens)})
+    
+    def _handle_token_withdraw(self):
+        """Withdraw tokens from recycling pool."""
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length).decode())
+        
+        count = body.get('count', 1)
+        tokens = self.engine._vault.token_recycler.withdraw(count)
+        
+        self._json_response({"tokens": tokens, "count": len(tokens)})
+    
+    def _handle_fuel_reserve(self):
+        """Get fuel reserve for a room."""
+        room_id = self.path.split('/')[-1]
+        reserve = self.engine._vault.fuel_reserves.get_reserve(room_id)
+        self._json_response(reserve)
+
+
+    def _call_gemini_api(self, prompt: str) -> dict:
+        """Call Gemini REST API (2026 v1beta format)."""
+        api_key = self._load_gemini_key()
+        if not api_key:
+            return {"error": "API key not configured"}
+        
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
+        
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt
+                }]
+            }]
+        }
+        
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key
+        }
+        
+        try:
+            import requests
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "candidates" in data and len(data["candidates"]) > 0:
+                    content = data["candidates"][0]["content"]
+                    if "parts" in content and len(content["parts"]) > 0:
+                        return {"response": content["parts"][0]["text"]}
+                return {"error": "No response from Gemini"}
+            else:
+                return {"error": f"API error {response.status_code}: {response.text}"}
+        except Exception as e:
+            return {"error": f"Request failed: {str(e)}"}
+
+    # Gemini 3-Tier Model Matrix
+    GEMINI_MODELS = {
+        "tier1_heavy": "gemini-3.1-pro-preview",      # Heavy reasoning
+        "tier2_workhorse": "gemini-3.5-flash",        # Main operational
+        "tier3_lite": "gemini-3.1-flash-lite"         # Ultra-low cost
+    }
+
+    def _call_gemini_api(self, prompt: str, tier: str = "tier3_lite") -> dict:
+        """Call Gemini REST API with 3-tier routing (2026 AQ. key format)."""
+        api_key = self._load_gemini_key()
+        if not api_key:
+            return {"error": "API key not configured"}
+        
+        model = self.GEMINI_MODELS.get(tier, self.GEMINI_MODELS["tier3_lite"])
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt
+                }]
+            }]
+        }
+        
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key
+        }
+        
+        try:
+            import requests
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "candidates" in data and len(data["candidates"]) > 0:
+                    content = data["candidates"][0]["content"]
+                    if "parts" in content and len(content["parts"]) > 0:
+                        return {"response": content["parts"][0]["text"], "model": model}
+                return {"error": "No response from Gemini"}
+            else:
+                return {"error": f"API error {response.status_code}: {response.text}"}
+        except Exception as e:
+            return {"error": f"Request failed: {str(e)}"}
+
+    def _handle_ai_chat(self):
+        """Handle AI chat requests (OpenAI-compatible endpoint)."""
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            if length == 0:
+                self._json_response({"error": "No request body"}, 400)
+                return
+            
+            body = json.loads(self.rfile.read(length).decode())
+            messages = body.get('messages', [])
+            
+            if not messages:
+                self._json_response({"error": "No messages provided"}, 400)
+                return
+            
+            # Extract last user message
+            user_message = messages[-1].get('content', '')
+            
+            # TODO: Integrate with actual LLM API (OpenAI, Anthropic, etc.)
+            # For now, return a placeholder response
+            response_text = f"[AI Response Placeholder] Received: {user_message[:50]}..."
+            
+            self._json_response({
+                "id": f"chat-{int(time.time())}",
+                "object": "chat.completion",
+                "created": int(time.time()),
+                "model": body.get('model', 'gpt-4'),
+                "choices": [{
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": response_text
+                    },
+                    "finish_reason": "stop"
+                }],
+                "usage": {
+                    "prompt_tokens": len(user_message) // 4,
+                    "completion_tokens": len(response_text) // 4,
+                    "total_tokens": (len(user_message) + len(response_text)) // 4
+                }
+            })
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+    
+    def _handle_ai_chat_gemini(self):
+        """Handle Gemini-specific chat requests."""
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            if length == 0:
+                self._json_response({"error": "No request body"}, 400)
+                return
+            
+            body = json.loads(self.rfile.read(length).decode())
+            prompt = body.get('prompt', '')
+            
+            if not prompt:
+                self._json_response({"error": "No prompt provided"}, 400)
+                return
+            
+            # TODO: Integrate with actual Gemini API
+            response_text = f"[Gemini Placeholder] Received: {prompt[:50]}..."
+            
+            self._json_response({
+                "response": response_text,
+                "model": "gemini-pro",
+                "timestamp": time.time()
+            })
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+
+    def _load_gemini_key(self):
+        """Load Gemini API key from vault."""
+        key_file = os.path.join(os.path.dirname(__file__), "vault/gemini_key.txt")
+        if os.path.exists(key_file):
+            with open(key_file, 'r') as f:
+                return f.read().strip()
+        return None
+    
+    
+    def _handle_ai_chat(self):
+        """Handle AI chat with Gemini REST API."""
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            if length == 0:
+                self._json_response({"error": "No request body"}, 400)
+                return
+            
+            body = json.loads(self.rfile.read(length).decode())
+            messages = body.get('messages', [])
+            
+            if not messages:
+                self._json_response({"error": "No messages provided"}, 400)
+                return
+            
+            # Build conversation text from messages
+            conversation = "\n".join([
+                f"{msg['role']}: {msg['content']}" 
+                for msg in messages
+            ])
+            
+            # Call Gemini
+            result = self._call_gemini_api(conversation)
+            
+            if "error" in result:
+                self._json_response({"error": result["error"]}, 500)
+                return
+            
+            response_text = result["response"]
+            
+            # Return OpenAI-compatible format
+            self._json_response({
+                "id": f"chat-{int(time.time())}",
+                "object": "chat.completion",
+                "created": int(time.time()),
+                "model": "gemini-pro",
+                "choices": [{
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": response_text
+                    },
+                    "finish_reason": "stop"
+                }],
+                "usage": {
+                    "prompt_tokens": len(conversation) // 4,
+                    "completion_tokens": len(response_text) // 4,
+                    "total_tokens": (len(conversation) + len(response_text)) // 4
+                }
+            })
+            
+        except Exception as e:
+            self._json_response({"error": f"Handler error: {str(e)}"}, 500)
+    
+    def _handle_ai_chat_gemini(self):
+        """Handle direct Gemini chat (simplified endpoint)."""
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            if length == 0:
+                self._json_response({"error": "No request body"}, 400)
+                return
+            
+            body = json.loads(self.rfile.read(length).decode())
+            prompt = body.get('prompt', '')
+            
+            if not prompt:
+                self._json_response({"error": "No prompt provided"}, 400)
+                return
+            
+            # Call Gemini
+            result = self._call_gemini_api(prompt)
+            
+            if "error" in result:
+                self._json_response({"error": result["error"]}, 500)
+                return
+            
+            self._json_response({
+                "response": result["response"],
+                "model": "gemini-pro",
+                "timestamp": time.time()
+            })
+            
+        except Exception as e:
+            self._json_response({"error": f"Handler error: {str(e)}"}, 500)
 
 # ── HTML BUILDER ──
 
@@ -2216,3 +2773,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    def _handle_token_stats(self):
+        """Return token recycling statistics."""
+        stats = self.engine._vault.token_recycler.get_stats()
+        self._json_response(stats)

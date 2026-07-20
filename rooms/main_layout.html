@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE 4-ROOM COMMAND CENTER</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e27;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(90deg, #0a0e27, #1a1e47, #0a0e27);
+            border-bottom: 2px solid #00ff00;
+        }
+        .header h1 {
+            color: #00ffff;
+            font-size: 22px;
+            letter-spacing: 4px;
+        }
+        .header .subtitle {
+            color: #888;
+            font-size: 11px;
+            font-style: italic;
+        }
+        .header .status {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #ff00ff;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 150px);
+            gap: 2px;
+            padding: 2px;
+        }
+        .room {
+            border: 2px solid;
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .room-header {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid;
+        }
+        .room-content {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        #room1 { border-color: #00ffff; background: rgba(0, 255, 255, 0.05); }
+        #room1 .room-header { color: #00ffff; border-color: #00ffff; }
+        
+        #room2 { border-color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+        #room2 .room-header { color: #00ff00; border-color: #00ff00; }
+        
+        #room3 { border-color: #ffaa00; background: rgba(255, 170, 0, 0.05); }
+        
+        #room3 .room-header { color: #ffaa00; border-color: #ffaa00; }
+        
+        #room4 { border-color: #ff00ff; background: rgba(255, 0, 255, 0.05); }
+        #room4 .room-header { color: #ff00ff; border-color: #ff00ff; }
+        
+        .cmd-line { margin: 5px 0; }
+        .cmd-line::before { content: "→ "; color: #666; }
+        
+        .terminal-input, .ai-input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 8px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .terminal-input { border-color: #ffaa00; }
+        .ai-input { border-color: #ff00ff; color: #ff00ff; }
+        
+        .terminal-output {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            margin: 5px 0;
+            border-left: 3px solid #ffaa00;
+            color: #aaa;
+            font-size: 12px;
+        }
+        .ai-msg {
+            background: rgba(255,0,255,0.1);
+            border-left: 3px solid #ff00ff;
+            padding: 8px;
+            margin: 5px 0;
+            color: #ff00ff;
+            font-size: 12px;
+        }
+        .room-btn {
+            background: rgba(0,255,255,0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 6px 12px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 3px;
+            transition: all 0.3s;
+        }
+        .room-btn:hover {
+            background: #00ffff;
+            color: #0a0e27;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: #0a0e27;
+            border-top: 2px solid #00ff00;
+        }
+        .footer button {
+            background: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            flex: 1;
+            margin: 0 3px;
+        }
+        .footer button:hover {
+            background: #00ff00;
+            color: #0a0e27;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0e27; }
+        ::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="status" id="ws-status">● CONNECTING</div>
+        <h1>THE 4-ROOM COMMAND CENTER</h1>
+        <div class="subtitle">Bad MF Box architecture — applied to sovereign development</div>
+    </div>
+
+    <div class="grid">
+        <div class="room" id="room1">ROOM1_CONTENT</div>
+        <div class="room" id="room2">ROOM2_CONTENT</div>
+        <div class="room" id="room4">ROOM4_CONTENT</div>
+        <div class="room" id="room3">ROOM3_CONTENT</div>
+    </div>
+
+    <div class="footer">
+        <button onclick="sendCommand('FORGE')">FORGE</button>
+        <button onclick="sendCommand('SPLIT')">SPLIT</button>
+        <button onclick="sendCommand('SORT')">SORT</button>
+        <button onclick="sendCommand('INTEGRATE')">INTEGRATE</button>
+        <button onclick="sendCommand('BUILD')">BUILD</button>
+    </div>
+
+    <script src="rooms/client.js"></script>
+</body>
+</html>

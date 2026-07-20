@@ -1,0 +1,99 @@
+<div class="room-header" style="background: linear-gradient(90deg, #ff6b00, #ffaa00); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+    [ 3 ] EXECUTION TERMINAL
+</div>
+
+<div class="room-content" style="display: flex; flex-direction: column; gap: 6px; padding: 6px;">
+    
+    <!-- Important Commands Only -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+        <button class="exec-btn" onclick="execQuick('LOCK')">🔒 LOCK</button>
+        <button class="exec-btn" onclick="execQuick('VERIFY')">✓ VERIFY</button>
+        <button class="exec-btn" onclick="execQuick('STATUS')">📊 STATUS</button>
+    </div>
+
+    <!-- Direct Command Input -->
+    <div style="display: flex; align-items: center; background: rgba(255,107,0,0.1); border: 1px solid #ff6b00; padding: 6px;">
+        <span style="color: #ff6b00; font-size: 11px; margin-right: 6px;">$</span>
+        <input type="text" 
+               id="term-input" 
+               placeholder="direct command..." 
+               autocomplete="off"
+               style="flex: 1; background: transparent; border: none; color: #ffaa00; font-family: 'Courier New', monospace; font-size: 11px; outline: none;">
+    </div>
+
+    <!-- Terminal Output -->
+    <div id="term-output" style="flex: 1; background: #000; border: 2px solid #ff6b00; padding: 8px; overflow-y: auto; font-size: 10px; font-family: 'Courier New', monospace; line-height: 1.4;">
+        <div style="color: #ff6b00;">[Execution Terminal]</div>
+        <div style="color: #666;">Awaiting commands from Command Center...</div>
+    </div>
+
+</div>
+
+<style>
+.exec-btn {
+    background: rgba(255,107,0,0.1);
+    border: 1px solid #ff6b00;
+    color: #ff6b00;
+    padding: 8px;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.exec-btn:hover {
+    background: #ff6b00;
+    color: #000;
+}
+</style>
+
+<script>
+// Listen for commands from Room 1
+function sendToTerminal(cmd) {
+    executeCommand(cmd);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('term-input');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value.trim();
+                if (cmd) {
+                    executeCommand(cmd);
+                    e.target.value = '';
+                }
+            }
+        });
+    }
+});
+
+function executeCommand(cmd) {
+    const output = document.getElementById('term-output');
+    if (!output) return;
+    
+    const line = document.createElement('div');
+    line.style.color = '#ffaa00';
+    line.textContent = '$ ' + cmd;
+    output.appendChild(line);
+    
+    // Send to backend
+    if (typeof sendCommand === 'function') {
+        sendCommand(cmd.split(' ')[0], { args: cmd.split(' ').slice(1).join(' ') });
+    }
+    
+    // Simulate response
+    setTimeout(() => {
+        const resp = document.createElement('div');
+        resp.style.color = '#00ff00';
+        resp.textContent = '⚡ Executing ' + cmd + '...';
+        output.appendChild(resp);
+        output.scrollTop = output.scrollHeight;
+    }, 200);
+    
+    output.scrollTop = output.scrollHeight;
+}
+
+function execQuick(cmd) {
+    executeCommand('make ' + cmd.toLowerCase());
+}
+</script>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE 4-ROOM COMMAND CENTER</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e27;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(90deg, #0a0e27, #1a1e47, #0a0e27);
+            border-bottom: 2px solid #00ff00;
+        }
+        .header h1 {
+            color: #00ffff;
+            font-size: 24px;
+            letter-spacing: 4px;
+        }
+        .header .subtitle {
+            color: #888;
+            font-size: 12px;
+            font-style: italic;
+        }
+        .header .status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #ff00ff;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 120px);
+            gap: 2px;
+            padding: 2px;
+        }
+        .room {
+            border: 2px solid;
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .room-header {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid;
+        }
+        .room-content {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        #room1 { border-color: #00ffff; background: rgba(0, 255, 255, 0.05); }
+        #room1 .room-header { color: #00ffff; border-color: #00ffff; }
+        
+        #room2 { border-color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+        #room2 .room-header { color: #00ff00; border-color: #00ff00; }
+        
+        #room3 { border-color: #ffaa00; background: rgba(255, 170, 0, 0.05); }
+        #room3 .room-header { color: #ffaa00; border-color: #ffaa00; }
+        
+        #room4 { border-color: #ff00ff; background: rgba(255, 0, 255, 0.05); }
+        #room4 .room-header { color: #ff00ff; border-color: #ff00ff; }
+        
+        .cmd-line { margin: 5px 0; }
+        .cmd-line::before { content: "→ "; color: #666; }
+        
+        .terminal-input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ffaa00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 8px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .terminal-output {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #ffaa00;
+            color: #aaa;
+        }
+        .ai-msg {
+            background: rgba(255,0,255,0.1);
+            border-left: 3px solid #ff00ff;
+            padding: 8px;
+            margin: 5px 0;
+            color: #ff00ff;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: #0a0e27;
+            border-top: 2px solid #00ff00;
+        }
+        .footer button {
+            background: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .footer button:hover {
+            background: #00ff00;
+            color: #0a0e27;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0e27; }
+        ::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="status">● LIVE</div>
+        <h1>THE 4-ROOM COMMAND CENTER</h1>
+        <div class="subtitle">Bad MF Box architecture — applied to sovereign development</div>
+    </div>
+
+    <div class="grid">
+        <!-- Room 1: Command Post -->
+        <div class="room" id="room1">
+            <div class="room-header">[ 1 ] COMMAND POST</div>
+            <div class="room-content">
+                <div class="cmd-line">Pipeline control</div>
+                <div class="cmd-line">Room management</div>
+                <div class="cmd-line">Engine status</div>
+                <div class="cmd-line">Lock / Unlock</div>
+                <div style="margin-top: 20px; color: #00ffff;">
+                    <strong>8CV Status:</strong><br>
+                    Gear: <span id="gear">GEAR_2_ACTIVE</span><br>
+                    Health: <span id="health">50/50</span><br>
+                    Cycles: <span id="cycles">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room 2: File Status -->
+        <div class="room" id="room2">
+            <div class="room-header">[ 2 ] FILE STATUS</div>
+            <div class="room-content">
+                <div class="cmd-line">Current file</div>
+                <div class="cmd-line">Last edits</div>
+                <div class="cmd-line">Lock status</div>
+                <div class="cmd-line">Diff view</div>
+                <div id="file-status" style="margin-top: 20px; color: #00ff00;">
+                    <strong>Room States:</strong><br>
+                    <div id="room-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room 4: AI Chat -->
+        <div class="room" id="room4">
+            <div class="room-header">[ 4 ] AI CHAT</div>
+            <div class="room-content">
+                <div class="cmd-line">AI sees your work</div>
+                <div class="cmd-line">Edits with you</div>
+                <div class="cmd-line">Live suggestions</div>
+                <div class="cmd-line">Sovereign access</div>
+                <div id="ai-feed" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- Room 3: Terminal -->
+        <div class="room" id="room3">
+            <div class="room-header">[ 3 ] TERMINAL</div>
+            <div class="room-content">
+                <div class="cmd-line">Live execution</div>
+                <div class="cmd-line">Input → tools</div>
+                <div class="cmd-line">File system</div>
+                <div class="cmd-line">Build output</div>
+                <div id="terminal-output"></div>
+                <input type="text" class="terminal-input" id="terminal-input" placeholder="$ enter command...">
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button onclick="sendCommand('FORGE')">FORGE</button>
+        <button onclick="sendCommand('SPLIT')">SPLIT</button>
+        <button onclick="sendCommand('SORT')">SORT</button>
+        <button onclick="sendCommand('INTEGRATE')">INTEGRATE</button>
+        <button onclick="sendCommand('BUILD')">BUILD</button>
+    </div>
+
+    <script>
+        let ws;
+        let wsReconnectTimer;
+
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8081');
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.querySelector('.status').textContent = '● LIVE';
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('Parse error:', e);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = () => {
+                document.querySelector('.status').textContent = '● RECONNECTING';
+                wsReconnectTimer = setTimeout(connectWebSocket, 2000);
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+            if (data.event === 'CYCLE') {
+                document.getElementById('gear').textContent = data.payload.gear;
+                document.getElementById('health').textContent = `${data.payload.health}/50`;
+                document.getElementById('cycles').textContent = data.payload.cycle;
+            } else if (data.event === 'ROOM_UPDATE') {
+                updateRoomList(data.payload);
+            } else if (data.event === 'AI_MESSAGE') {
+                addAIMessage(data.payload);
+            } else if (data.event === 'TERMINAL_OUTPUT') {
+                addTerminalOutput(data.payload);
+            }
+        }
+
+        function updateRoomList(rooms) {
+            const roomList = document.getElementById('room-list');
+            roomList.innerHTML = '';
+            for (const [name, status] of Object.entries(rooms)) {
+                const color = status === 'HEALTHY' ? '#00ff00' : '#ff0000';
+                roomList.innerHTML += `<div style="color: ${color};">${name}: ${status}</div>`;
+            }
+        }
+
+        function addAIMessage(msg) {
+            const feed = document.getElementById('ai-feed');
+            const div = document.createElement('div');
+            div.className = 'ai-msg';
+            div.textContent = msg;
+            feed.appendChild(div);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function addTerminalOutput(output) {
+            const terminal = document.getElementById('terminal-output');
+            const div = document.createElement('div');
+            div.className = 'terminal-output';
+            div.textContent = output;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function sendCommand(cmd) {
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd, params: {} })
+            }).then(r => r.json()).then(data => {
+                addTerminalOutput(`> ${cmd}: ${JSON.stringify(data)}`);
+            });
+        }
+
+        document.getElementById('terminal-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value;
+                addTerminalOutput(`$ ${cmd}`);
+                // Send to backend
+                e.target.value = '';
+            }
+        });
+
+        connectWebSocket();
+
+        // Fetch initial state
+        fetch('/state').then(r => r.json()).then(data => {
+            if (data.turf && data.turf.rooms) {
+                updateRoomList(data.turf.rooms);
+            }
+        });
+    </script>
+</body>
+</html>

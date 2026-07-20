@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE 4-ROOM COMMAND CENTER</title>
+    <title>FlowStation Command Center</title>
+    <style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -38,7 +39,7 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: 0.8fr 1.2fr;
+            grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             height: calc(100vh - 150px);
             gap: 2px;
@@ -146,57 +147,63 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0a0e27; }
         ::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="status" id="ws-status">● CONNECTING</div>
+        <h1>THE 4-ROOM COMMAND CENTER</h1>
+        <div class="subtitle">Bad MF Box architecture — applied to sovereign development</div>
 
         /* Merged bottom room styles */
         #room-bottom {
             grid-column: 1 / 3;
             display: flex;
+            flex-direction: row;
             gap: 0;
         }
-
-        .bottom-half {
+        
+        .bottom-section {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
-
-        /* Animated divider line */
+        
+        /* Animated divider */
         .terminal-divider {
             width: 3px;
             background: linear-gradient(180deg, #9c27b0 0%, #d4af37 100%);
             position: relative;
-            animation: pulse-glow 2s ease-in-out infinite;
+            animation: pulse-divider 2s ease-in-out infinite;
         }
-
-        @keyframes pulse-glow {
-            0%, 100% {
-                opacity: 0.6;
-                box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        
+        @keyframes pulse-divider {
+            0%, 100% { 
+                opacity: 0.6; 
+                box-shadow: 0 0 10px rgba(212, 175, 55, 0.5); 
             }
-            50% {
-                opacity: 1;
-                box-shadow: 0 0 20px rgba(212, 175, 55, 0.8),
-                           0 0 30px rgba(156, 39, 176, 0.4);
+            50% { 
+                opacity: 1; 
+                box-shadow: 0 0 20px rgba(212, 175, 55, 0.8), 0 0 30px rgba(156, 39, 176, 0.4); 
             }
         }
-
-        /* Active state glow for buttons and selections */
+        
+        /* Active state glow */
         .room-select-btn.active,
         button.active,
         .tab-btn.active {
             animation: glow-active 1.5s ease-in-out infinite;
         }
-
+        
         @keyframes glow-active {
-            0%, 100% {
-                box-shadow: 0 0 10px currentColor;
+            0%, 100% { 
+                box-shadow: 0 0 10px currentColor; 
             }
-            50% {
-                box-shadow: 0 0 20px currentColor,
-                           0 0 30px currentColor;
+            50% { 
+                box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; 
             }
         }
-
+        
         /* Hover effects */
         button:hover,
         .room-select-btn:hover,
@@ -208,13 +215,11 @@
 </head>
 <body>
     <div class="header">
-        <div class="status" id="ws-status">● CONNECTING</div>
-        <h1>THE 4-ROOM COMMAND CENTER</h1>
+        <div class="title">THE 4-ROOM COMMAND CENTER</div>
         <div class="subtitle">Bad MF Box architecture — applied to sovereign development</div>
     </div>
 
     <div class="grid">
-        <div class="room" id="room1"><div class="room-header" style="background: linear-gradient(90deg, #00bcd4, #0097a7); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
     [ 1 ] COMMAND CENTER
 </div>
 
@@ -850,12 +855,16 @@ if (typeof connector !== 'undefined') {
 }
 </script>
 </div>
-        <div class="room" id="room-bottom">
-            <div class="bottom-half" style="background: rgba(156, 39, 176, 0.03);">
-    [ 4 ] AI PARTNER — K9 SOLDIER MODE
-    <span id="ai-status" style="float: right; font-size: 9px; color: #000;">🟢 ONLINE</span>
-</div>
 
+        <!-- Merged Bottom: AI Observing + TheRealMF Terminal -->
+        <div class="room" id="room-bottom">
+            
+            <!-- Left: AI Observing (Purple) -->
+            <div class="bottom-section" style="background: rgba(156, 39, 176, 0.03);">
+                <div class="room-header" style="background: linear-gradient(90deg, #9c27b0, #ba68c8); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+                    [ 4 ] AI PARTNER — K9 SOLDIER MODE
+                    <span id="ai-status" style="float: right; font-size: 9px; color: #000;">🟢 ONLINE</span>
+                </div>
 <div class="room-content" style="display: flex; flex-direction: column; height: 100%; padding: 6px; gap: 6px;">
     
     <!-- AI Status Bar -->
@@ -918,16 +927,6 @@ if (typeof connector !== 'undefined') {
         <button onclick="viewLocks()" class="ai-action-btn">🔒 Show Locks</button>
         <button onclick="wipeMemory()" class="ai-action-btn" style="border-color: #f44;">🗑️ Wipe Session</button>
         <button onclick="aiLogout()" class="ai-action-btn" style="border-color: #ff9800;">🚪 AI Logout</button>
-    </div>
-
-    <!-- AI Action Bar -->
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 8px;">
-        <button class="exec-btn" onclick="sendCommand('FORGE')">⚒️ FORGE</button>
-        <button class="exec-btn" onclick="sendCommand('SPLIT')">✂️ SPLIT</button>
-        <button class="exec-btn" onclick="sendCommand('SORT')">📋 SORT</button>
-        <button class="exec-btn" onclick="sendCommand('INTEGRATE')">🔗 INTEGRATE</button>
-        <button class="exec-btn" onclick="sendCommand('BUILD')">🔨 BUILD</button>
-        <button class="exec-btn" onclick="sendCommand('DEPLOY')">🚀 DEPLOY</button>
     </div>
 
 </div>
@@ -1173,32 +1172,22 @@ if (typeof connector !== 'undefined') {
 }
 </script>
             </div>
+            
+            <!-- Animated Divider -->
             <div class="terminal-divider"></div>
-            <div class="bottom-half" style="background: rgba(212, 175, 55, 0.03);">
-    [ 3 ] TheRealMF TERMINAL
-</div>
-
-<div class="room-content" style="display: flex; gap: 4px; padding: 6px; height: 100%;">
-    <!-- Left: Commands & Execution -->
-    <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
-        
-        <!-- Important Commands Only -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-            <button class="exec-btn" onclick="execQuick('LOCK')">🔒 LOCK</button>
-            <button class="exec-btn" onclick="execQuick('VERIFY')">✓ VERIFY</button>
-            <button class="exec-btn" onclick="execQuick('STATUS')">📊 STATUS</button>
-    </div>
-
-    <!-- Right: Live Code Viewer -->
-    <div id="terminal3-code-viewer" style="flex: 1; display: flex; flex-direction: column; background: rgba(0, 0, 0, 0.4); border: 1px solid #d4af37; border-radius: 4px; min-width: 0;">
-        <div style="background: linear-gradient(90deg, #d4af37, #ffd700); color: #000; font-weight: bold; padding: 4px 8px; font-size: 10px; border-radius: 4px 4px 0 0;">
-            📄 <span id="code-viewer-filename">No file selected</span>
-        </div>
-        <pre id="code-viewer-content" style="flex: 1; margin: 0; padding: 8px; overflow: auto; font-size: 11px; line-height: 1.4; color: #00ff00; font-family: monospace;">
-// Select a file in Room 2 to view its contents here
-// Click any .py, .html, .js, .json file to load it
-        </pre>
-    </div>
+            
+            <!-- Right: TheRealMF Terminal (Gold) -->
+            <div class="bottom-section" style="background: rgba(212, 175, 55, 0.03);">
+                <div class="room-header" style="background: linear-gradient(90deg, #d4af37, #ffd700); color: #000; font-weight: bold; padding: 6px; font-size: 11px;">
+                    [ 3 ] TheRealMF TERMINAL
+                </div>
+<div class="room-content" style="display: flex; flex-direction: column; gap: 6px; padding: 6px;">
+    
+    <!-- Important Commands Only -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+        <button class="exec-btn" onclick="execQuick('LOCK')">🔒 LOCK</button>
+        <button class="exec-btn" onclick="execQuick('VERIFY')">✓ VERIFY</button>
+        <button class="exec-btn" onclick="execQuick('STATUS')">📊 STATUS</button>
     </div>
 
     <!-- Direct Command Input -->
@@ -1213,17 +1202,6 @@ if (typeof connector !== 'undefined') {
 
     <!-- Terminal Output -->
     <div id="term-output" style="flex: 1; background: #000; border: 2px solid #ff6b00; padding: 8px; overflow-y: auto; font-size: 10px; font-family: 'Courier New', monospace; line-height: 1.4;">
-
-    <!-- Expanded Command Grid -->
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 8px;">
-        <button class="exec-btn" onclick="execQuick('PUSH')">📤 PUSH</button>
-        <button class="exec-btn" onclick="execQuick('PULL')">📥 PULL</button>
-        <button class="exec-btn" onclick="execQuick('TEST')">🧪 TEST</button>
-        <button class="exec-btn" onclick="execQuick('BUILD')">🔨 BUILD</button>
-        <button class="exec-btn" onclick="execQuick('BACKUP')">💾 BACKUP</button>
-        <button class="exec-btn" onclick="execQuick('CLEAN')">🧹 CLEAN</button>
-    </div>
-
         <div style="color: #ff6b00;">[Execution Terminal]</div>
         <div style="color: #666;">Awaiting commands from Command Center...</div>
     </div>
@@ -1302,9 +1280,13 @@ function execQuick(cmd) {
     </div>
 
     <div class="footer">
+        <button onclick="sendCommand('FORGE')">FORGE</button>
+        <button onclick="sendCommand('SPLIT')">SPLIT</button>
+        <button onclick="sendCommand('SORT')">SORT</button>
+        <button onclick="sendCommand('INTEGRATE')">INTEGRATE</button>
+        <button onclick="sendCommand('BUILD')">BUILD</button>
+    </div>
 
-            </div>
-        </div>
     <script>// FlowStation Connector — FC_FLOW WebSocket bridge
 // Connects UI panels to FlowStation-v1.1.0-FC_FLOW.py backend
 
@@ -1474,154 +1456,10 @@ connectWebSocket();
 fetch('/state').then(r => r.json()).then(data => {
     if (data.turf && data.turf.rooms) {
         updateRoomList(data.turf.rooms);
-    }
-}).catch(err => console.error('State fetch failed:', err));
+            </div>
+        </div>
+    </div>
 
-// Active state management for visual feedback
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Room selection buttons - highlight active room
-    document.querySelectorAll('.room-select-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Remove active from all room buttons
-            document.querySelectorAll('.room-select-btn').forEach(b => b.classList.remove('active'));
-            // Add active to clicked button
-            this.classList.add('active');
-        });
-    });
-    
-    // Tab buttons (Files/Code in File Center)
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const parent = this.parentElement;
-            parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-    
-    // Command buttons - flash active on click
-    document.querySelectorAll('button[onclick*="sendCommand"], button[onclick*="execQuick"]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.classList.add('active');
-            setTimeout(() => this.classList.remove('active'), 1500);
-        });
-    });
-    
-    // Set initial active states
-    const room0btn = document.querySelector('.room-select-btn[onclick*="Room 0"]');
-    if (room0btn) room0btn.classList.add('active');
-    
-    const filesTab = document.querySelector('.tab-btn[onclick*="showTab(\'files\')"]');
-    if (filesTab) filesTab.classList.add('active');
-});
-
-// Active state management for visual feedback
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Room selection buttons - highlight active room
-    document.querySelectorAll('.room-select-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Remove active from all room buttons
-            document.querySelectorAll('.room-select-btn').forEach(b => b.classList.remove('active'));
-            // Add active to clicked button
-            this.classList.add('active');
-        });
-    });
-    
-    // Tab buttons (Files/Code in File Center)
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const parent = this.parentElement;
-            parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-    
-    // Command buttons - flash active on click
-    document.querySelectorAll('button[onclick*="sendCommand"], button[onclick*="execQuick"]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.classList.add('active');
-            setTimeout(() => this.classList.remove('active'), 1500);
-        });
-    });
-    
-    // Set initial active states
-    const room0btn = document.querySelector('.room-select-btn[onclick*="Room 0"]');
-    if (room0btn) room0btn.classList.add('active');
-    
-    const filesTab = document.querySelector('.tab-btn[onclick*="showTab(\'files\')"]');
-    if (filesTab) filesTab.classList.add('active');
-});
-
-// Code Viewer Integration for Terminal 3
-function updateCodeViewer(filename, content) {
-    const filenameEl = document.getElementById('code-viewer-filename');
-    const contentEl = document.getElementById('code-viewer-content');
-    
-    if (filenameEl && contentEl) {
-        filenameEl.textContent = filename;
-        
-        // Basic syntax highlighting for common file types
-        let highlighted = content;
-        const ext = filename.split('.').pop().toLowerCase();
-        
-        if (ext === 'py' || ext === 'python') {
-            highlighted = highlighted
-                .replace(/\b(def|class|import|from|return|if|else|elif|for|while|try|except|with|as)\b/g, '<span style="color: #ff79c6;">$1</span>')
-                .replace(/(['"])([^\1]*?)\1/g, '<span style="color: #f1fa8c;">$1$2$1</span>')
-                .replace(/#.*/g, '<span style="color: #6272a4;">$&</span>');
-        } else if (ext === 'js' || ext === 'javascript') {
-            highlighted = highlighted
-                .replace(/\b(function|const|let|var|return|if|else|for|while|class|async|await)\b/g, '<span style="color: #ff79c6;">$1</span>')
-                .replace(/(['"`])([^\1]*?)\1/g, '<span style="color: #f1fa8c;">$1$2$1</span>')
-                .replace(/\/\/.*/g, '<span style="color: #6272a4;">$&</span>');
-        } else if (ext === 'html') {
-            highlighted = highlighted
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/(&lt;\/?[a-zA-Z][^&]*?&gt;)/g, '<span style="color: #ff79c6;">$1</span>');
-        }
-        
-        contentEl.innerHTML = highlighted;
-        contentEl.scrollTop = 0;
-    }
-}
-
-// Hook into existing file click handlers
-document.addEventListener('DOMContentLoaded', function() {
-    // When a file is clicked in Room 2, load it into the viewer
-    document.querySelectorAll('.file-item').forEach(fileEl => {
-        fileEl.addEventListener('click', function() {
-            const filename = this.textContent.trim();
-            // Request file content via WebSocket
-            if (window.ws && window.ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    action: 'read_file',
-                    filename: filename,
-                    target: 'code_viewer'
-                }));
-            }
-        });
-    });
-});
-
-// Listen for file content responses from WebSocket
-if (typeof window.handleWSMessage === 'undefined') {
-    const originalOnMessage = WebSocket.prototype.onmessage;
-    WebSocket.prototype.onmessage = function(event) {
-        try {
-            const data = JSON.parse(event.data);
-            if (data.target === 'code_viewer' && data.content) {
-                updateCodeViewer(data.filename, data.content);
-            }
-        } catch (e) {
-            // Not JSON or not for code viewer
-        }
-        if (originalOnMessage) originalOnMessage.call(this, event);
-    };
-}
-</script>
+<script>
 </body>
 </html>
-

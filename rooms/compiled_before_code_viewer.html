@@ -38,7 +38,7 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: 0.8fr 1.2fr;
+            grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             height: calc(100vh - 150px);
             gap: 2px;
@@ -1178,27 +1178,13 @@ if (typeof connector !== 'undefined') {
     [ 3 ] TheRealMF TERMINAL
 </div>
 
-<div class="room-content" style="display: flex; gap: 4px; padding: 6px; height: 100%;">
-    <!-- Left: Commands & Execution -->
-    <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
-        
-        <!-- Important Commands Only -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-            <button class="exec-btn" onclick="execQuick('LOCK')">🔒 LOCK</button>
-            <button class="exec-btn" onclick="execQuick('VERIFY')">✓ VERIFY</button>
-            <button class="exec-btn" onclick="execQuick('STATUS')">📊 STATUS</button>
-    </div>
-
-    <!-- Right: Live Code Viewer -->
-    <div id="terminal3-code-viewer" style="flex: 1; display: flex; flex-direction: column; background: rgba(0, 0, 0, 0.4); border: 1px solid #d4af37; border-radius: 4px; min-width: 0;">
-        <div style="background: linear-gradient(90deg, #d4af37, #ffd700); color: #000; font-weight: bold; padding: 4px 8px; font-size: 10px; border-radius: 4px 4px 0 0;">
-            📄 <span id="code-viewer-filename">No file selected</span>
-        </div>
-        <pre id="code-viewer-content" style="flex: 1; margin: 0; padding: 8px; overflow: auto; font-size: 11px; line-height: 1.4; color: #00ff00; font-family: monospace;">
-// Select a file in Room 2 to view its contents here
-// Click any .py, .html, .js, .json file to load it
-        </pre>
-    </div>
+<div class="room-content" style="display: flex; flex-direction: column; gap: 6px; padding: 6px;">
+    
+    <!-- Important Commands Only -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+        <button class="exec-btn" onclick="execQuick('LOCK')">🔒 LOCK</button>
+        <button class="exec-btn" onclick="execQuick('VERIFY')">✓ VERIFY</button>
+        <button class="exec-btn" onclick="execQuick('STATUS')">📊 STATUS</button>
     </div>
 
     <!-- Direct Command Input -->
@@ -1552,75 +1538,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const filesTab = document.querySelector('.tab-btn[onclick*="showTab(\'files\')"]');
     if (filesTab) filesTab.classList.add('active');
 });
-
-// Code Viewer Integration for Terminal 3
-function updateCodeViewer(filename, content) {
-    const filenameEl = document.getElementById('code-viewer-filename');
-    const contentEl = document.getElementById('code-viewer-content');
-    
-    if (filenameEl && contentEl) {
-        filenameEl.textContent = filename;
-        
-        // Basic syntax highlighting for common file types
-        let highlighted = content;
-        const ext = filename.split('.').pop().toLowerCase();
-        
-        if (ext === 'py' || ext === 'python') {
-            highlighted = highlighted
-                .replace(/\b(def|class|import|from|return|if|else|elif|for|while|try|except|with|as)\b/g, '<span style="color: #ff79c6;">$1</span>')
-                .replace(/(['"])([^\1]*?)\1/g, '<span style="color: #f1fa8c;">$1$2$1</span>')
-                .replace(/#.*/g, '<span style="color: #6272a4;">$&</span>');
-        } else if (ext === 'js' || ext === 'javascript') {
-            highlighted = highlighted
-                .replace(/\b(function|const|let|var|return|if|else|for|while|class|async|await)\b/g, '<span style="color: #ff79c6;">$1</span>')
-                .replace(/(['"`])([^\1]*?)\1/g, '<span style="color: #f1fa8c;">$1$2$1</span>')
-                .replace(/\/\/.*/g, '<span style="color: #6272a4;">$&</span>');
-        } else if (ext === 'html') {
-            highlighted = highlighted
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/(&lt;\/?[a-zA-Z][^&]*?&gt;)/g, '<span style="color: #ff79c6;">$1</span>');
-        }
-        
-        contentEl.innerHTML = highlighted;
-        contentEl.scrollTop = 0;
-    }
-}
-
-// Hook into existing file click handlers
-document.addEventListener('DOMContentLoaded', function() {
-    // When a file is clicked in Room 2, load it into the viewer
-    document.querySelectorAll('.file-item').forEach(fileEl => {
-        fileEl.addEventListener('click', function() {
-            const filename = this.textContent.trim();
-            // Request file content via WebSocket
-            if (window.ws && window.ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    action: 'read_file',
-                    filename: filename,
-                    target: 'code_viewer'
-                }));
-            }
-        });
-    });
-});
-
-// Listen for file content responses from WebSocket
-if (typeof window.handleWSMessage === 'undefined') {
-    const originalOnMessage = WebSocket.prototype.onmessage;
-    WebSocket.prototype.onmessage = function(event) {
-        try {
-            const data = JSON.parse(event.data);
-            if (data.target === 'code_viewer' && data.content) {
-                updateCodeViewer(data.filename, data.content);
-            }
-        } catch (e) {
-            // Not JSON or not for code viewer
-        }
-        if (originalOnMessage) originalOnMessage.call(this, event);
-    };
-}
 </script>
 </body>
 </html>
